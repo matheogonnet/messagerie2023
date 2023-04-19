@@ -16,7 +16,7 @@ public class DaoUser extends Dao<User> {
         super(url, user, password);
     }
 
-
+    @Override
     public void add(User user) throws SQLException {
         String query = "INSERT INTO user (last_name, first_name, pseudo, password, last_connection, grade, ban) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -35,6 +35,7 @@ public class DaoUser extends Dao<User> {
         }
     }
 
+    @Override
     public void update(User user) throws SQLException {
         String query = "UPDATE user SET last_connection = ?, status = ?, grade = ?, ban = ? WHERE pseudo = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -48,6 +49,7 @@ public class DaoUser extends Dao<User> {
 
     }
 
+    @Override
     public User find(int user_ID) throws SQLException {
         String query = "SELECT * FROM user WHERE user_ID = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -124,6 +126,7 @@ public class DaoUser extends Dao<User> {
         }
     }
 
+    @Override
     public void delete(User user) throws SQLException {
         String query = "DELETE FROM user WHERE pseudo = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {

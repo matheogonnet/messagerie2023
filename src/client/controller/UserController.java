@@ -1,9 +1,11 @@
 package client.controller;
 
 import client.model.Grades;
+import client.model.Status;
 import client.model.User;
 import server.dataAccesModule.DaoUser;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class UserController {
@@ -17,42 +19,23 @@ public class UserController {
     }
 
 
-    public void registerUser() throws SQLException {
+    ///REGISTER////
+    public void registerUser(String firstName, String lastName, String password, String pseudo) throws SQLException {
         //créer un user classic
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Enter your first name: ");
-        String firstName = scanner.nextLine();
-
-        System.out.print("Enter your last name: ");
-        String lastName = scanner.nextLine();
-
-        System.out.print("Enter your password: ");
-        String password = scanner.nextLine();
-
-        System.out.print("Enter your pseudo: ");
-        String pseudo = scanner.nextLine();
-
         this.user = new User(lastName,firstName,pseudo, password);
-
         userDao.add(user);
         userDao.update(user);
     }
 
-    public void loginUser() throws SQLException {
+    ///LOGIN////
+    public void loginUser(String pseudo, String password) throws SQLException {
         Scanner scanner = new Scanner(System.in);
         boolean ok = true;
         do {
-            System.out.print("Enter your username: ");
-            String username = scanner.nextLine();
-
-            System.out.print("Enter your password: ");
-            String password = scanner.nextLine();
-
-
+            assert password != null;
             password = User.hashPassword(password);
 
-            User userFind = userDao.findByPseudo(username);
+            User userFind = userDao.findByPseudo(pseudo);
 
 
             if (userFind != null && userFind.getPassword().equals(password)) {
@@ -68,9 +51,8 @@ public class UserController {
         }while(ok);
     }
 
-
+    ///BAN////
     public void ban_user(User userToBan) throws SQLException {
-
 
         // Vérifier que l'utilisateur cible n'est pas déjà banni
         if (userToBan.isBan()) {
@@ -96,6 +78,53 @@ public class UserController {
             System.out.println("Vous n'avez pas les droits");
             //ecrire le code +interface
         }
+    }
+
+    ///UPGRADE////
+    public void upgrade_user(User userToUpgrade) throws SQLException {
+
+        if (userToUpgrade.isBan()) {
+            System.out.println("L'utilisateur " + userToUpgrade.getPseudo() + " est banni.");
+        }
+        else if (user.getGrade() == Grades.Administrator){
+
+            if (userToUpgrade.getGrade() == Grades.Administrator) {
+                System.out.println("L'utilisateur est déjà un administrateur.");
+            }
+            else if (userToUpgrade.getGrade() == Grades.Moderator) {
+                //afficher un message de demande confirmation
+                //le grade est mit a jour
+                userToUpgrade.setGrade(Grades.Administrator);
+                userDao.update(userToUpgrade);
+                System.out.println("L'utilisateur " + userToUpgrade.getPseudo() + " est passé Administrateur ");
+
+            }
+            else { //user est un user normal
+                //le grade est mit à jour
+                userToUpgrade.setGrade(Grades.Moderator);
+                userDao.update(userToUpgrade);
+                System.out.println("L'utilisateur " + userToUpgrade.getPseudo() + " est passé Modérateur ");
+
+            }
+        }
+        else {
+            System.out.println("Vous n'avez pas les droits");
+        }
+
+    }
+
+    public void setStatus(String status) throws SQLException {
+        if (status.equals("Online")){
+            user.setStatus(Status.Online);
+        }
+        else if(status.equals("Offline")){
+            user.setStatus(Status.Offline);
+        }
+        else {
+            user.setStatus(Status.Away);
+        }
+        userDao.update(user);
+
     }
 
 

@@ -14,6 +14,7 @@ public class DaoMessage extends Dao<Message> {
         super(url, user, password);
     }
 
+    @Override
     public void add(Message message) throws SQLException {
         String query = "INSERT INTO message (id, author, timestamp, content) VALUES (?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -25,6 +26,7 @@ public class DaoMessage extends Dao<Message> {
         }
     }
 
+    @Override
     public void update(Message message) throws SQLException {
         String query = "UPDATE message SET content = ? WHERE author = ? AND timestamp = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -35,6 +37,7 @@ public class DaoMessage extends Dao<Message> {
         }
     }
 
+    @Override
     public Message find(int id) throws SQLException {
         String query = "SELECT * FROM message WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -52,7 +55,7 @@ public class DaoMessage extends Dao<Message> {
         }
     }
 
-
+    @Override
     public void delete(Message message) throws SQLException {
         String query = "DELETE FROM message WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {

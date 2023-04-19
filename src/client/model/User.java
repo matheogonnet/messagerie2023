@@ -133,38 +133,9 @@ public class User {
 
 
     ///BANISSEMENT////
-    public void ban(User user) throws SQLException {
+    public void ban(User user) {
         user.ban =true;
         user.log_out();
-    }
-
-    ///UPGRADE////
-    public void upgrade_user(User user) {
-
-        if (user.isBan()) {
-            System.out.println("L'utilisateur " + user.getPseudo() + " est banni.");
-        }
-        else if (this.grade == Grades.Administrator){
-
-            if (user.grade == Grades.Administrator) {
-                System.out.println("L'utilisateur est déjà un administrateur.");
-            }
-            else if (user.grade == Grades.Moderator) {
-                //afficher un message de demande confirmation
-                //le grade est mit a jour
-                user.grade = Grades.Administrator;
-
-            }
-            else { //user est un user normal
-                //le grade est mit à jour
-                user.grade=Grades.Moderator;
-
-            }
-        }
-        else {
-            System.out.println("Vous n'avez pas les droits");
-        }
-
     }
 
 
