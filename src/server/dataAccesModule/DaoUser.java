@@ -9,6 +9,11 @@ import client.model.User;
 //libraries
 import java.sql.*;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class DaoUser extends Dao<User> {
@@ -125,7 +130,59 @@ public class DaoUser extends Dao<User> {
             }
         }
     }
+    public List<User> findAll() throws SQLException {
+        String query = "SELECT * FROM user";
+        List<User> users = new ArrayList<>();
+        if (connection == null) {
+            throw new SQLException("La connexion à la base de données est nulle.");
+        }
+        try (PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet result = statement.executeQuery()) {
+            while (result.next()) {
+                User user = new User();
+                user.setUser_ID(result.getInt("user_id"));
+                user.setLast_name(result.getString("last_name"));
+                user.setFirst_name(result.getString("first_name"));
+                user.setPseudo(result.getString("pseudo"));
+                user.setPassword(result.getString("password"));
+                user.setLast_connection(result.getString("last_connection"));
 
+                int statusInt = result.getInt("status");
+                if (statusInt < 0 || statusInt >= Status.values().length) {
+                    throw new IllegalArgumentException("Index invalide pour l'enum Statut");
+                }
+                Status status = Status.values()[statusInt];
+                user.setStatus(status);
+
+                int gradeInt = result.getInt("grade");
+                if (gradeInt < 0 || gradeInt >= Grades.values().length) {
+                    throw new IllegalArgumentException("Index invalide pour l'enum Grade");
+                }
+                Grades grade = Grades.values()[gradeInt];
+                user.setGrade(grade);
+
+                user.setBan(result.getBoolean("ban"));
+                users.add(user);
+            }
+        }
+        return users;
+    }
+
+    public Map<LocalDate, Integer> getLoginTime() throws SQLException {
+        String query = "SELECT DATE(last_connection) AS date, COUNT(*) AS login_count FROM user GROUP BY DATE(last_connection) ORDER BY DATE(last_connection)";
+        Map<LocalDate, Integer> loginCountsByDate = new LinkedHashMap<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            try (ResultSet result = statement.executeQuery()) {
+                while (result.next()) {
+                    LocalDate date = result.getDate("date").toLocalDate();
+                    int loginCount = result.getInt("login_count");
+                    loginCountsByDate.put(date, loginCount);
+                }
+            }
+        }
+        return loginCountsByDate;
+    }
     @Override
     public void delete(User user) throws SQLException {
         String query = "DELETE FROM user WHERE pseudo = ?";

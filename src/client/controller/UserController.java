@@ -3,6 +3,7 @@ package client.controller;
 import client.model.Grades;
 import client.model.Status;
 import client.model.User;
+import server.dataAccesModule.DaoMessage;
 import server.dataAccesModule.DaoUser;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -11,6 +12,9 @@ import java.util.Scanner;
 public class UserController {
 
     private DaoUser userDao;
+
+    private DaoMessage daomessage;
+
     private User user;
 
     public UserController(DaoUser userDao) {
@@ -127,6 +131,15 @@ public class UserController {
 
     }
 
+    public void reportingUser(Reporting reporting) throws SQLException{
+        if (user.getGrade() == Grades.Administrator) {
+            reporting.GraphGrades();
+            reporting.GraphStatus();
+            reporting.GraphTopUser(daomessage);
+            reporting.GraphMessageTime(daomessage);
+            //reporting.GraphLoginTime(userDao);
+        }
+    }
 
 
 }
