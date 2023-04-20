@@ -1,11 +1,13 @@
 package client.view;
 import client.model.Status;
 import client.model.User;
-
+import client.controller.UserController;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.SQLException;
 import javax.swing.ImageIcon;
+
 
 public class Menu extends JFrame implements ActionListener {
 
@@ -14,6 +16,7 @@ public class Menu extends JFrame implements ActionListener {
     static JButton loginButton, signUpButton;
     static JLabel logoLabel;
     User logUser;
+    UserController userController;
     public String fname, lname, mail, mdp, cmdp;
     boolean login = false;
 
@@ -29,11 +32,10 @@ public class Menu extends JFrame implements ActionListener {
     }
 
 
-    public Menu(User user){
-        user.setStatus(Status.Online);
+    public Menu(UserController userController1){
+        this.userController = userController1;
 
         // Initaliser la page du menu
-        this.logUser = user;
         final int WIDTH = 800;
         final int HEIGHT = 500;
         // Définissez le frame
@@ -149,17 +151,24 @@ public class Menu extends JFrame implements ActionListener {
         logInButton2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent logIn2) {
                 // On récupère le mdp et cmdp pour comparer
-                logUser.setPassword(passwordField2.getText().trim());
-                String confirmPassword = new String(confirmPasswordField2.getPassword());
-                logUser.setPseudo(pseudoField2.getText());
+                String password = passwordField2.getText().trim();
+                String confirmPassword = confirmPasswordField2.getText().trim();
+                String pseudo = pseudoField2.getText();
 
                 // On compare les mdp, et on vérifie que les cases sont remplies
-                if (!logUser.getPassword().equals(confirmPassword)) {
+                if (!password.equals(confirmPassword)) {
                     JOptionPane.showMessageDialog(menuFrame, "Les deux mots de passe ne sont pas identiques", "Mismatch", JOptionPane.ERROR_MESSAGE);
-                } else if (logUser.getPassword().equals("") || pseudoField2.getText().equals("")) {
+                } else if (password.equals("") || pseudoField2.getText().equals("")) {
                     JOptionPane.showMessageDialog(menuFrame, "Veuillez remplir toutes les cases", "Remplir", JOptionPane.WARNING_MESSAGE);
                 } else {
+                    try {
+                        userController.loginUser(pseudo, password);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+
                     JOptionPane.showMessageDialog(menuFrame, "LogIn complet", "LogIn Complet", JOptionPane.INFORMATION_MESSAGE);
+                    logUser = userController.getUser();
                     setLogin(true);
                     menuFrame.dispose();
                     ouvrirSalon();
@@ -171,7 +180,7 @@ public class Menu extends JFrame implements ActionListener {
         retourButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent retour) {
                 menuFrame.dispose();
-                Menu menu = new Menu(logUser); // méthode pour afficher à nouveau le menuFrame de base
+                Menu menu = new Menu(userController); // méthode pour afficher à nouveau le menuFrame de base
             }
         });
     }
@@ -261,7 +270,7 @@ public class Menu extends JFrame implements ActionListener {
                 } else{
                     JOptionPane.showMessageDialog(menuFrame, "Bravo, le Sign Up est complet.", "Sign Up complet", JOptionPane.INFORMATION_MESSAGE);
                     menuFrame.dispose();
-                    Menu menu = new Menu(logUser);
+                    Menu menu = new Menu(userController);
                 }
             }
         });
@@ -269,7 +278,7 @@ public class Menu extends JFrame implements ActionListener {
         retourButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent retour) {
                 menuFrame.dispose();
-                Menu menu = new Menu(logUser); // méthode pour afficher à nouveau le menuFrame de base
+                Menu menu = new Menu(userController); // méthode pour afficher à nouveau le menuFrame de base
             }
         });
     }

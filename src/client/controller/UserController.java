@@ -15,12 +15,17 @@ public class UserController {
 
     private DaoMessage daomessage;
 
+    public User getUser() {
+        return user;
+    }
+
     private User user;
 
     public UserController(DaoUser userDao) {
         //this.user = user;
         this.userDao = userDao;
     }
+
 
 
     ///REGISTER////
@@ -33,7 +38,6 @@ public class UserController {
 
     ///LOGIN////
     public void loginUser(String pseudo, String password) throws SQLException {
-        Scanner scanner = new Scanner(System.in);
         boolean ok = true;
         do {
             assert password != null;
