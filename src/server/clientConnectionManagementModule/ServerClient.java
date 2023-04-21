@@ -36,6 +36,8 @@ public class ServerClient extends Thread {
 
     public void send(String message){
         writer.println(message); // Envoi d'un message au client via le flux d'écriture
+
+        //envoyer le message ici à la base de donnée
     }
 
     public void stopRunning(){

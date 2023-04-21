@@ -1,10 +1,6 @@
-package server.clientConnectionManagementModule;
-
-import server.dataAccesModule.DaoUser;
-
+package server;
 
 import server.clientConnectionManagementModule.ChatServer;
-
 
 import java.io.IOException;
 import java.sql.SQLException;

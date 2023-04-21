@@ -108,7 +108,6 @@ public class Login {
             } else {
                 DisplayStepHandler.setDisplay(4);
                 Window.closeWindow(loginFrame);
-
             }
         });
 

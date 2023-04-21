@@ -66,11 +66,10 @@ public class ChatServer {
 
     public void sendToAllClients(String message, String src) {
 
+
         for (ServerClient client : clients) {
             if (!client.userName.equals(src)) {
-
                 client.send(message);
-
             }
         }
 

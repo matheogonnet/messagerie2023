@@ -31,14 +31,11 @@ public class Salon{
     static JTextField messageBox;
     static JPanel convoPanel;
     User logUser;
-    Conversation conversation = new Conversation("Salon");
-    MessageController messageController;
 
 
-    public void display(User user, DaoUser userDao, DaoMessage messageDao, UserController userController) throws SQLException {
-        conversation.setConversation(messageDao.findAll());
+    public void display(User user, DaoUser userDao, UserController userController, Conversation conversation) throws SQLException {
         logUser = user;
-        messageController = new MessageController(logUser,messageDao,conversation);
+
         List<User> listUsers = userDao.findAll();
         String[] pseudos = new String[listUsers.size()];
 
@@ -307,8 +304,10 @@ public class Salon{
         String message = messageBox.getText();
 
         if (!message.equals("") && (message.length() < 500)) {
-            //on ajoute le message à la BDD
-            messageController.send(message);
+            DisplayStepHandler.clientMessage = message;
+            DisplayStepHandler.setDisplay(6);
+            Window.closeWindow(salonFrame);
+
 
             //On affiche le dernier message
             printLastMessage(message, convoPanel, author);
