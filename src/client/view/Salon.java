@@ -176,7 +176,7 @@ public class Salon{
         // Ajout du logo en bas de la fenetre
         ImageIcon icon = new ImageIcon("logo.png");
         Image img = icon.getImage();
-        Image newImg = img.getScaledInstance(300, 300, Image.SCALE_SMOOTH);
+        Image newImg = img.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
         ImageIcon newIcon = new ImageIcon(newImg);
         JLabel logoLabel = new JLabel(newIcon);
         userPanel.add(logoLabel, BorderLayout.SOUTH);
