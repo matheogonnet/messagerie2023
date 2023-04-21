@@ -8,11 +8,12 @@ public class Conversation {
     private int id;
 
     public Conversation(String title) {
-
         this.conversation = new ArrayList<Message>();
         this.title = title;
+    }
 
-
+    public void setConversation(ArrayList<Message> conversation) {
+        this.conversation = conversation;
     }
 
     public ArrayList<Message> getConversation() {

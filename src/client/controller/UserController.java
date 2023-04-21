@@ -33,30 +33,28 @@ public class UserController {
         //créer un user classic
         this.user = new User(lastName,firstName,pseudo, password);
         userDao.add(user);
-        userDao.update(user);
+        //userDao.update(user);
     }
 
     ///LOGIN////
-    public void loginUser(String pseudo, String password) throws SQLException {
-        boolean ok = true;
-        do {
-            assert password != null;
-            password = User.hashPassword(password);
+    public boolean loginUser(String pseudo, String password) throws SQLException {
+        assert password != null;
+        password = User.hashPassword(password);
 
-            User userFind = userDao.findByPseudo(pseudo);
+        User userFind = userDao.findByPseudo(pseudo);
 
 
-            if (userFind != null && userFind.getPassword().equals(password)) {
-                System.out.println("Login successful" + userFind);
-                //on met à jour son statut : online
-                userFind.log_in();
-                this.user = userFind;
-                userDao.update(user);
-                ok = false;
-            } else {
-                System.out.println("Incorrect username or password");
-            }
-        }while(ok);
+        if (userFind != null && userFind.getPassword().equals(password)) {
+            System.out.println("Login successful");
+            //on met à jour son statut : online
+            userFind.log_in();
+            this.user = userFind;
+            userDao.update(user);
+            return true;
+        } else {
+            System.out.println("Incorrect username or password");
+            return false;
+        }
     }
 
     ///BAN////

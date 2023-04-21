@@ -1,29 +1,45 @@
 package client.view;
-import client.model.Status;
-import client.model.User;
+import client.controller.MessageController;
+
+import client.controller.Reporting;
+import client.controller.UserController;
+import client.model.*;
+import server.dataAccesModule.DaoMessage;
+import server.dataAccesModule.DaoUser;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Salon extends JFrame implements ActionListener{
+public class Salon{
 
     static JFrame salonFrame;
     static JButton sendButton;
     static JTextField messageBox;
     static JPanel convoPanel;
     User logUser;
+    Conversation conversation = new Conversation("Salon");
+    MessageController messageController;
 
-    public Salon(User user){
+
+    public void display(User user, DaoUser userDao, DaoMessage messageDao, UserController userController) throws SQLException {
+        conversation.setConversation(messageDao.findAll());
         logUser = user;
+        messageController = new MessageController(logUser,messageDao,conversation);
+        List<User> listUsers = userDao.findAll();
+        String[] pseudos = new String[listUsers.size()];
 
-        // Créer la fenêtre du Salon
-        //lui donner une userlist
-        JList<String> userList = new JList<>(new String[]{logUser.getPseudo(), "Matheo", "Kaito", "Arthur"});
+        // Remplir le tableau de pseudos avec les pseudos des utilisateurs
+        for (int i = 0; i < listUsers.size(); i++) {
+            pseudos[i] = listUsers.get(i).getPseudo();
+        }
+        // Créer la JList avec le tableau de pseudos
+        JList<String> userList = new JList<>(pseudos);
+
+
 
         salonFrame = new JFrame("Salon");
         salonFrame.setSize(1200, 800);
@@ -72,7 +88,7 @@ public class Salon extends JFrame implements ActionListener{
                     String selectedUser = userList.getSelectedValue();
 
                     // Vérification que l'utilisateur sélectionné n'est pas nul
-                    if (selectedUser != null) {
+                    if (selectedUser.equals(logUser.getPseudo())) {
 
                         // Création d'un JLabel pour afficher le nom de l'utilisateur sélectionné
                         JLabel usernameLabel = new JLabel(selectedUser);
@@ -96,32 +112,7 @@ public class Salon extends JFrame implements ActionListener{
                         statusPanel.add(setStatusButton);
                         statusPanel.add(statusDropdown);
 
-                        // Ajout d'un écouteur d'événements au bouton "Set status"
-                        setStatusButton.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent event) {
-                                // Récupération du statut sélectionné dans le menu déroulant
-                                String selectedStatus = (String) statusDropdown.getSelectedItem();
-                                // Convertir la chaîne en une valeur de l'enum Status
-                                Status newStatus = null;
-                                switch (selectedStatus) {
-                                    case "Online":
-                                        newStatus = Status.Online;
-                                        break;
-                                    case "Offline":
-                                        newStatus = Status.Offline;
-                                        break;
-                                    case "Away":
-                                        newStatus = Status.Away;
-                                        break;
-                                }
 
-                                // Mettre à jour le statut de logUser
-                                logUser.setStatus(newStatus);
-                                currentStatusLabel.setText("Current status: " + logUser.getStatus().toString());
-                                JOptionPane.showMessageDialog(null, "Status set to " + logUser.getStatus());
-                            }
-                        });
 
                         // Ajout du JPanel "statusPanel" au JPanel "userPanel"
                         userPanel.add(statusPanel);
@@ -154,8 +145,26 @@ public class Salon extends JFrame implements ActionListener{
                         int x = (int) (screenSize.getWidth() * 0.225);
                         int y = (int) (screenSize.getHeight() * 0.104);
                         userFrame.setLocation(x, y);
+                        Window.displayWindow(userFrame);
 
-                        userFrame.setVisible(true);
+
+                        // Ajout d'un écouteur d'événements au bouton "Set status"
+                        setStatusButton.addActionListener(event1 -> {
+                            // Récupération du statut sélectionné dans le menu déroulant
+                            String selectedStatus = (String) statusDropdown.getSelectedItem();
+                            /*try {
+                                assert selectedStatus != null;
+                                controller.setStatus(selectedStatus);
+                            } catch (SQLException e) {
+                                throw new RuntimeException(e);
+                            }*/
+                            currentStatusLabel.setText("Current status: " + logUser.getStatus().toString());
+                            JOptionPane.showMessageDialog(null, "Status set to " + logUser.getStatus());
+                        });
+
+                        banButton.addActionListener(event2 ->{
+                            JOptionPane.showMessageDialog(salonFrame, "Vous n'avez pas les droits");
+                        });
                     }
                 }
             }
@@ -167,7 +176,7 @@ public class Salon extends JFrame implements ActionListener{
         // Ajout du logo en bas de la fenetre
         ImageIcon icon = new ImageIcon("logo.png");
         Image img = icon.getImage();
-        Image newImg = img.getScaledInstance(300, 300, java.awt.Image.SCALE_SMOOTH);
+        Image newImg = img.getScaledInstance(300, 300, Image.SCALE_SMOOTH);
         ImageIcon newIcon = new ImageIcon(newImg);
         JLabel logoLabel = new JLabel(newIcon);
         userPanel.add(logoLabel, BorderLayout.SOUTH);
@@ -188,15 +197,33 @@ public class Salon extends JFrame implements ActionListener{
         messageBox = new JTextField(50);
         messageBox.setPreferredSize(new Dimension(400, 30));
         sendButton = new JButton("Send");
-        sendButton.addActionListener(this);
-        JButton reportButton = new JButton("Reporting");
-        reportButton.setPreferredSize(new Dimension(100, 30));
-        reportButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(salonFrame, "Vous n'avez pas les droits");
+        sendButton.addActionListener(event -> {
+            try {
+                envoyerMessage(messageBox, convoPanel, salonFrame);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
         });
+
+        JButton reportButton = new JButton("Reporting");
+        reportButton.setPreferredSize(new Dimension(100, 30));
+        reportButton.addActionListener(event -> {
+            if (logUser.getGrade()== Grades.Moderator ||logUser.getGrade() ==Grades.Classic){
+                JOptionPane.showMessageDialog(salonFrame, "Vous n'avez pas les droits");
+            }
+            else if (logUser.getGrade()==Grades.Administrator){
+                Reporting reporting = new Reporting(listUsers);
+                try {
+                    userController.reportingUser(reporting);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+
+        });
+
+
 
         messagePanel.add(messageBox);
         messagePanel.add(sendButton);
@@ -205,45 +232,38 @@ public class Salon extends JFrame implements ActionListener{
         salonFrame.setVisible(true);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent event2) {
-        // List des messages, c'est la conversation
-        List<String> conversation = new ArrayList<String>();
 
-        // On récupère le texte que l'on veut envoyer
+    public void envoyerMessage(JTextField messageBox, JPanel convoPanel, JFrame salonFrame) throws SQLException {
         String message = messageBox.getText();
 
-        // On vérifie si le message est bon, on le stock dans la conversation et on l'affiche
         if (!message.equals("") && (message.length() < 500)) {
-            conversation.add(message);
+            //on ajoute le message à la BDD
+            messageController.send(message);
+            //on affiche la conversation actualisée
+            printConversation(conversation.getConversation(), convoPanel);
 
-            printConversation(conversation, convoPanel);
-
-        } else if (message.equals("")){
+        } else if (message.equals("")) {
             JOptionPane.showMessageDialog(salonFrame, "Veuillez écrire un message", "Erreur", JOptionPane.ERROR_MESSAGE);
+
         } else {
             JOptionPane.showMessageDialog(salonFrame, "Veuillez modifier votre message", "Erreur", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // Helper function to get the status for a given user (replace with your actual logic)
-    private String getStatusForUser(String user) {
-        return "Online";
-    }
-    public void printConversation(List<String> conversation, JPanel convoPanel) {
+     public void printConversation(ArrayList<Message> conversation, JPanel convoPanel) {
         // On chope le nombre de messages dans la conversation
         int numMessages = conversation.size();
 
         // On crée l'emplacement du pseudo
-        JLabel usernameLabel = new JLabel(logUser.getPseudo() + " : ");
+        JLabel usernameLabel = new JLabel();
         usernameLabel.setForeground(Color.LIGHT_GRAY);
         usernameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         usernameLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 3, 3));
 
         for (int i = 0; i < numMessages; i++) {
             // On récupère le message que l'on veut afficher de la conversation
-            String message = conversation.get(i);
-
+            String message = conversation.get(i).getContent();
+            usernameLabel.setText(conversation.get(i).getAuthor() + " : ");
             JLabel messageLabel = new JLabel(message);
             messageLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             messageLabel.setBorder(BorderFactory.createEmptyBorder(3, 10, 3, 3));
@@ -251,7 +271,6 @@ public class Salon extends JFrame implements ActionListener{
             // Et on affiche le pseudo + message
             convoPanel.add(usernameLabel);
             convoPanel.add(messageLabel);
-
             usernameLabel = new JLabel();
         }
 

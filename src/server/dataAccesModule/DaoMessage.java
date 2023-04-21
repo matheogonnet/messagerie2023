@@ -67,9 +67,9 @@ public class DaoMessage extends Dao<Message> {
         }
     }
 
-    public List<Message> findAll() throws SQLException {
+    public ArrayList<Message> findAll() throws SQLException {
         String query = "SELECT * FROM message";
-        List<Message> messages = new ArrayList<>();
+        ArrayList<Message> messages = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(query);
              ResultSet result = statement.executeQuery()) {
             while (result.next()) {

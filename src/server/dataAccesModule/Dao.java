@@ -20,6 +20,7 @@ public abstract class Dao<T> {
 
     public void openConnection() throws SQLException {
         connection = DriverManager.getConnection(url, user, password);
+        System.out.println("Connection to the data base : OPEN");
     }
 
     // Fermer la connexion à la base de données
@@ -27,6 +28,7 @@ public abstract class Dao<T> {
         if (connection != null) {
             connection.close();
         }
+        System.out.println("Connection to the data base : CLOSE");
     }
     public abstract T find(int id) throws SQLException;
 
