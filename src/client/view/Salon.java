@@ -6,13 +6,23 @@ import client.controller.UserController;
 import client.model.*;
 import server.dataAccesModule.DaoMessage;
 import server.dataAccesModule.DaoUser;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.Color;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import java.sql.SQLException;
+
+// Temps
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Salon{
 
@@ -39,8 +49,6 @@ public class Salon{
         // Créer la JList avec le tableau de pseudos
         JList<String> userList = new JList<>(pseudos);
 
-
-
         salonFrame = new JFrame("Salon");
         salonFrame.setSize(1200, 800);
         salonFrame.setLocationRelativeTo(null);
@@ -53,6 +61,7 @@ public class Salon{
         convoPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         convoPanel.setPreferredSize(new Dimension(1000, 720));
         JScrollPane convoPane = new JScrollPane(convoPanel);
+        printConversation(conversation.getConversation(), convoPanel);
 
         // Panel de gauche pour les utilisateurs
         JPanel userPanel = new JPanel();
@@ -199,7 +208,7 @@ public class Salon{
         sendButton = new JButton("Send");
         sendButton.addActionListener(event -> {
             try {
-                envoyerMessage(messageBox, convoPanel, salonFrame);
+                envoyerMessageFinal(messageBox, convoPanel, salonFrame, logUser.getPseudo());
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -220,10 +229,19 @@ public class Salon{
                 }
 
             }
-
         });
-
-
+        messageBox.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent enter) {
+                if (enter.getKeyCode() == KeyEvent.VK_ENTER) {
+                    try {
+                        actionPerformed(null);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        });
 
         messagePanel.add(messageBox);
         messagePanel.add(sendButton);
@@ -232,15 +250,68 @@ public class Salon{
         salonFrame.setVisible(true);
     }
 
+    public void actionPerformed(ActionEvent event2) throws SQLException {
+        envoyerMessageFinal(messageBox, convoPanel, salonFrame, logUser.getPseudo());
+    }
+    // Template pour la bulle de message
+    public static class MessageBubble extends JPanel {
+        private JLabel usernameLabel;
+        private JLabel messageLabel;
+        private JLabel timeLabel;
 
-    public void envoyerMessage(JTextField messageBox, JPanel convoPanel, JFrame salonFrame) throws SQLException {
+        public MessageBubble(String author, String message) {
+            // Définition boite username + message
+            usernameLabel = new JLabel(author);
+            usernameLabel.setForeground(Color.WHITE);
+            usernameLabel.setFont(usernameLabel.getFont().deriveFont(Font.BOLD));
+            usernameLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+
+            messageLabel = new JLabel(message);
+            messageLabel.setForeground(Color.WHITE);
+            messageLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+            timeLabel = new JLabel();
+            timeLabel.setForeground(Color.BLACK);
+            int a = message.length() * 7;
+            int b = author.length() * 7;
+            // On décale l'heure à droite en fonction de la longueur du username ou message
+            if (a < b) {
+                timeLabel.setBorder(BorderFactory.createEmptyBorder(0, b, 5, 0));
+            } else {
+                timeLabel.setBorder(BorderFactory.createEmptyBorder(0, a, 5, 0));
+            }
+            timeLabel.setHorizontalAlignment(JLabel.RIGHT);
+            updateTimeLabel();
+
+            // Création bulle de message
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            add(usernameLabel);
+            add(messageLabel);
+            add(timeLabel);
+
+            setOpaque(true);
+            setBackground(new Color(0, 192, 0));
+
+            setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 10));
+        }
+
+        private void updateTimeLabel() {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+            Date now = new Date();
+            timeLabel.setText(sdf.format(now));
+        }
+    }
+
+    // Méthode pour vérifier si le nouveau est message est valide, puis l'affiche
+    public void envoyerMessageFinal(JTextField messageBox, JPanel convoPanel, JFrame salonFrame, String author) throws SQLException {
         String message = messageBox.getText();
 
         if (!message.equals("") && (message.length() < 500)) {
             //on ajoute le message à la BDD
             messageController.send(message);
-            //on affiche la conversation actualisée
-            printConversation(conversation.getConversation(), convoPanel);
+
+            //On affiche le dernier message
+            printLastMessage(message, convoPanel, author);
 
         } else if (message.equals("")) {
             JOptionPane.showMessageDialog(salonFrame, "Veuillez écrire un message", "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -250,29 +321,27 @@ public class Salon{
         }
     }
 
-     public void printConversation(ArrayList<Message> conversation, JPanel convoPanel) {
-        // On chope le nombre de messages dans la conversation
-        int numMessages = conversation.size();
+    // Méthode pour envoyer le nouveau message
+    public void printLastMessage(String sNewMessage, JPanel convoPanel, String author){
+        int height = 0;
 
-        // On crée l'emplacement du pseudo
-        JLabel usernameLabel = new JLabel();
-        usernameLabel.setForeground(Color.LIGHT_GRAY);
-        usernameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        usernameLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 3, 3));
+        convoPanel.setLayout(new BoxLayout(convoPanel, BoxLayout.Y_AXIS));
+        convoPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        for (int i = 0; i < numMessages; i++) {
-            // On récupère le message que l'on veut afficher de la conversation
-            String message = conversation.get(i).getContent();
-            usernameLabel.setText(conversation.get(i).getAuthor() + " : ");
-            JLabel messageLabel = new JLabel(message);
-            messageLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            messageLabel.setBorder(BorderFactory.createEmptyBorder(3, 10, 3, 3));
+        // On prend le dernier message écrit
 
-            // Et on affiche le pseudo + message
-            convoPanel.add(usernameLabel);
-            convoPanel.add(messageLabel);
-            usernameLabel = new JLabel();
-        }
+        MessageBubble newMessageBubble = new MessageBubble(author, sNewMessage);
+        convoPanel.add(newMessageBubble);
+
+        height = newMessageBubble.getPreferredSize().height;
+
+        convoPanel.add(Box.createVerticalStrut(10));
+
+        int numComponents = convoPanel.getComponentCount()/2; // numComponents testé avec un println et il vaut toujours le double du nombre de messages
+
+        // Trouvé après essais successifs, défini la taille de l'ecran en fonction du nombre de messages envoyés
+        int convoPanelHeight = numComponents * (height + 10) + 20;
+        convoPanel.setPreferredSize(new Dimension(convoPanel.getWidth(), convoPanelHeight));
 
         // On réactualise la page pour chaque message envoyé
         convoPanel.revalidate();
@@ -280,6 +349,46 @@ public class Salon{
         messageBox.setText("");
     }
 
+    // Méthode pour imprimer toute la conversation au moment du logIn
+     public void printConversation(ArrayList<Message> conversation, JPanel convoPanel) {
+
+        // On chope le nombre de messages dans la conversation
+         int numMessages = conversation.size();
+
+         int height = 0;
+
+         convoPanel.setLayout(new BoxLayout(convoPanel, BoxLayout.Y_AXIS));
+         convoPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+         // On prend le dernier message écrit
+         for (int i = 0; i < numMessages; i++) {
+             // On récupère le message que l'on veut afficher de la conversation
+             Message message = conversation.get(i);
+
+             String sMessage = message.getContent();
+             String author = message.getAuthor();
+
+             MessageBubble messageBubble = new MessageBubble(author, sMessage);
+             convoPanel.add(messageBubble);
+
+             height = messageBubble.getPreferredSize().height;
+
+             convoPanel.add(Box.createVerticalStrut(10));
+         }
+
+         int numComponents = convoPanel.getComponentCount()/2; // numComponents testé avec un println et il vaut toujours le double du nombre de messages
+
+         // Trouvé après essais successifs, défini la taille de l'ecran en fonction du nombre de messages envoyés
+         int convoPanelHeight = numComponents * (height + 10) + 20;
+         convoPanel.setPreferredSize(new Dimension(convoPanel.getWidth(), convoPanelHeight));
+
+         // On réactualise la page pour chaque message envoyé
+        convoPanel.revalidate();
+        convoPanel.repaint();
+        //messageBox.setText("");
+    }
+
+    // Permet d'actualiser le fond des utilisateurs en fonction de leur status
     private JLabel setBackgroundForUserStatus(Object value, boolean isSelected) {
         JLabel renderer = new JLabel(value.toString());
         renderer.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
