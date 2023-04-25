@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 
+
 public class ServerClient{
 
     public BufferedReader reader;
@@ -85,6 +86,11 @@ public class ServerClient{
                     login(password, pseudo);
                     break;
                 }
+                case "log_out":{
+                    String pseudo = parts[2];
+                    logout(pseudo);
+                }
+
                 case "signUp": {
 
                     String pseudo = parts[2];
@@ -92,30 +98,29 @@ public class ServerClient{
                     String lastName = parts[4];
                     String password = parts[5];
                     signUp(lastName,firstName,pseudo,password);
-
                     break;
                 }
                 case "setStatus": {
                     String status = parts[2];
                     String username = parts[3];
                     setStatus(username,status);
-
                     break;
                 }
                 case "reporting":{
                     reporting();
                 }
-                case "ban_user":
+                case "ban_user":{
                     String pseudo = parts[2];
                     ban(pseudo);
+                    break;
+                }
 
+                case "upgrade": {
+                    String pseudo = parts[2];
+                    String grade = parts[3];
+                    upgrade(pseudo, grade);
                     break;
-                case "unban_user":
-                    //dao uunban
-                    break;
-                case "upgrade":
-                    //dao uograde...
-                    break;
+                }
             }
 
         }else if (type.equals("MESSAGE")) {
@@ -163,6 +168,13 @@ public class ServerClient{
         else send("USER::login::ACCES DENIED");
     }
 
+    private void  logout(String pseudo) throws SQLException, IOException {
+        User user = daoUser.findByPseudo(pseudo);
+        user.setStatus(Status.Offline);
+        daoUser.update(user);
+        server.sendToAllClients("USER::log_out::"+pseudo, id);
+    }
+
     private void signUp(String lastName, String firstName, String pseudo, String password) throws SQLException, IOException {
         User newUser = new User(lastName, firstName, pseudo, password);
         daoUser.add(newUser);
@@ -178,6 +190,14 @@ public class ServerClient{
         user.setBan(true);
         daoUser.update(user);
         server.sendToAllClients("USER::ban::"+user.getPseudo(),id);
+    }
+
+    private void upgrade(String pseudo, String grade) throws SQLException, IOException {
+        User user = daoUser.findByPseudo(pseudo);
+        if (grade.equals("Administrator"))user.setGrade(Grades.Administrator);
+        else user.setGrade(Grades.Moderator);
+        daoUser.update(user);
+        server.sendToAllClients("USER::upgrade::"+user.getPseudo()+"::"+grade,id);
     }
 
     private void setStatus(String username, String status) throws SQLException, IOException {

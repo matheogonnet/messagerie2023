@@ -35,7 +35,9 @@ public class ThreadListenClient extends Thread {
                     running = false;
 
                 }
-                if (message.equals("quit()")){
+
+                assert message != null;
+                if (message.equals("/disconnected")){
                     break;
                 }
 

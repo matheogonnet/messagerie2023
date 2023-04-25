@@ -34,31 +34,22 @@ public class Chat {
     /**
      * Affiche la fenêtre de chat.
      *
-     * @param client          Le client qui utilise l'application.
+     * @param client          Le client qui utilise l'application : il envoit les messages au server et les réceptionne pour actualiser la BDD
      * @param conversation    La conversation en cours.
      * @param listUsers       La liste des utilisateurs connectés.
      */
     public void display(Client client, Conversation conversation, List<User> listUsers) {
         logUser = client.getUser();
-        String[] pseudos = new String[listUsers.size()];
-
-        // Remplir le tableau de pseudos avec les pseudos des utilisateurs
-        for (int i = 0; i < listUsers.size(); i++) {
-            pseudos[i] = listUsers.get(i).getPseudo();
-        }
         // Créer la JList avec le tableau de pseudos
-        JList<String> userList = new JList<>(pseudos);
+        JList<String> userList = new JList<>();
+        updateUserList(listUsers,userList);
 
 
         //fentre salon
-        chatFrame = new JFrame("Salon");
+        chatFrame = new JFrame("Chat :"+client.getUser().getPseudo());
         chatFrame.setSize(1200, 800);
         chatFrame.setLocationRelativeTo(null);
         chatFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-
-
-
 
         // Panel de droite pour la conversation
         convoPanel = new JPanel();
@@ -86,30 +77,29 @@ public class Chat {
 
 
         // Créer une instance de la classe Timer
-        Timer timer = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                for (User user : listUsers){
-                    if (user.getPseudo().equals(logUser.getPseudo())){
-                        logUser = user;
-                    }
+        Timer timer = new Timer(1000, event -> {
+            logUser = client.getUser();
+            updateUserList(listUsers,userList);
+            for (User user : listUsers){
+                if (user.getPseudo().equals(logUser.getPseudo())){
+                    logUser = user;
                 }
-                if(logUser.isBan()){
-                    DisplayStepHandler.setDisplay(4);
-                    Window.closeWindow(chatFrame);
-                } else {
-                    // Mettre à jour les panneaux de conversation et d'utilisateurs
-                    printConversation(conversation.getConversation(), convoPanel);
-                    // Personnalisation de l'affichage des cellules de la JList userList
-                    userList.setCellRenderer(new DefaultListCellRenderer() {
-                        @Override
-                        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                            JLabel renderer = setBackgroundForUserStatus(value, isSelected,listUsers);
-                            return renderer;}});
+            }
+            if(logUser.isBan()){
+                DisplayStepHandler.setDisplay(4);
+                Window.closeWindow(chatFrame);
+            } else {
 
-                    userList.revalidate();
-                    userList.repaint(); // revoir cette partie
-                }
+                // Mettre à jour les panneaux de conversation et d'utilisateurs
+                printConversation(conversation.getConversation(), convoPanel, convoPane);
+                // Personnalisation de l'affichage des cellules de la JList userList
+                userList.setCellRenderer(new DefaultListCellRenderer() {
+                    @Override
+                    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                        return setBackgroundForUserStatus(value, isSelected,listUsers);}});
+
+                userList.revalidate();
+                userList.repaint(); // revoir cette partie
             }
         });
 
@@ -121,12 +111,14 @@ public class Chat {
             @Override
             public void windowClosing(WindowEvent e) {
                 timer.stop();
+                client.send("USER_REQUEST::log_out::" + logUser.getPseudo());
+                client.send("/disconnected");
             }
         });
 
 
         // Ajout du logo en bas de la fenetre
-        ImageIcon icon = new ImageIcon("..\\logo.png");
+        ImageIcon icon = new ImageIcon("logo.png");
         Image img = icon.getImage();
         Image newImg = img.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
         ImageIcon newIcon = new ImageIcon(newImg);
@@ -182,9 +174,10 @@ public class Chat {
                     // Vérification que l'utilisateur sélectionné n'est pas nul
                     if (selectedUser != null) {
 
+
                         // Création d'un JLabel pour afficher le nom de l'utilisateur sélectionné
-                        JLabel usernameLabel = new JLabel(selectedUser);
-                        usernameLabel.setFont(new Font("Arial", Font.BOLD, 20));
+                        JLabel usernameLabel = new JLabel("  "+selectedUser);
+                        usernameLabel.setFont(new Font("Calibri", Font.BOLD, 20));
 
                         // Récupération de l'utilisateur correspondant à l'utilisateur sélectionné
                         User selectedUserObj = null;
@@ -196,8 +189,8 @@ public class Chat {
                         }
 
                         // Création d'un JLabel pour afficher le grade de l'utilisateur sélectionné
-                        JLabel gradeLabel = new JLabel("(" + selectedUserObj.getGrade() + ")");
-                        gradeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+                        JLabel gradeLabel = new JLabel("Grade : " + selectedUserObj.getGrade());
+                        gradeLabel.setFont(new Font("Verdana", Font.PLAIN, 15));
 
                         // Création d'un JPanel pour afficher les informations de l'utilisateur
                         JPanel userPanel = new JPanel(new GridLayout(3, 1));
@@ -253,10 +246,14 @@ public class Chat {
                                     }
                                 }
                                 if (logUser.getGrade()==Grades.Administrator){
-                                    // Bannir l'utilisateur sélectionné
-                                    logUser.ban(userToBan);
-                                    client.send("USER_REQUEST::ban_user::"+userToBan.getPseudo());
-                                    JOptionPane.showMessageDialog(null, selectedUser + " a été banni.");
+                                    if (userToBan.getGrade()==Grades.Administrator){
+                                        JOptionPane.showMessageDialog(null, "vous ne pouvez pas bannir un administrateur.");
+                                    }
+                                    else { // Bannir l'utilisateur sélectionné
+                                        logUser.ban(userToBan);
+                                        client.send("USER_REQUEST::ban_user::" + userToBan.getPseudo());
+                                        JOptionPane.showMessageDialog(null, selectedUser + " a été banni.");
+                                    }
                                 } else if (logUser.getGrade()==Grades.Moderator && userToBan.getGrade()==Grades.Classic) {
                                     // Bannir l'utilisateur sélectionné
                                     logUser.ban(userToBan);
@@ -281,10 +278,12 @@ public class Chat {
                                 }
                                 if (logUser.getGrade()==Grades.Administrator&& userToUpgrade.getGrade()==Grades.Moderator){
                                     // Upgrade l'utilisateur sélectionné
+                                    client.send("USER_REQUEST::upgrade_user::"+userToUpgrade.getPseudo()+"::Administrator");
                                     userToUpgrade.setGrade(Grades.Administrator);
                                     JOptionPane.showMessageDialog(null, selectedUser + " est passé : Administrateur");
                                 } else if (logUser.getGrade()==Grades.Administrator && userToUpgrade.getGrade()==Grades.Classic) {
                                     // Upgrade l'utilisateur sélectionné
+                                    client.send("USER_REQUEST::upgrade_user::"+userToUpgrade.getPseudo()+"::Moderator");
                                     userToUpgrade.setGrade(Grades.Moderator);
                                     JOptionPane.showMessageDialog(null, selectedUser + " est passé : Modérateur");}
                                 else {
@@ -359,7 +358,7 @@ public class Chat {
          * @param message le contenu du message
          * @param timestamp l'horodatage du message
          */
-        public MessageBubble(String author, String message, String timestamp) {
+        public MessageBubble(String author, String message, String timestamp, User user) {
             // Définition boite username + message
             usernameLabel = new JLabel(author);
             usernameLabel.setForeground(Color.WHITE);
@@ -390,7 +389,11 @@ public class Chat {
             add(timeLabel);
 
             setOpaque(true);
-            setBackground(new Color(67, 192, 0, 255));
+            if (author.equals(user.getPseudo())) {
+                setBackground(new Color(155, 155, 155, 255));
+            } else {
+                setBackground(new Color(67, 192, 0, 255));
+            }
 
             setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 10));
         }
@@ -415,7 +418,7 @@ public class Chat {
             client.send("MESSAGE::sendMessage::"+logUser.getPseudo()+"::"+sdf.format(now)+"::"+message);
             Message newMessage = new Message(logUser.getPseudo(), sdf.format(now),message);
             conversation.getConversation().add(newMessage);
-            //printLastMessage(message, convoPanel, author);
+            messageBox.setText(""); // Réinitialisation du champ de saisie de message
 
         } else if (message.equals("")) {
             JOptionPane.showMessageDialog(salonFrame, "Veuillez écrire un message", "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -432,7 +435,8 @@ public class Chat {
      *
      * @param conversation liste des messages de la conversation
      * @param convoPanel panel de la conversation
-     */     public void printConversation(ArrayList<Message> conversation, JPanel convoPanel) {
+     */
+    public void printConversation(ArrayList<Message> conversation, JPanel convoPanel, JScrollPane scrollPane) {
 
         convoPanel.removeAll();
         // On chope le nombre de messages dans la conversation
@@ -451,7 +455,7 @@ public class Chat {
             String content = message.getContent();
             String author = message.getAuthor();
             String timeStamp = message.getTimeStamp();
-            MessageBubble messageBubble = new MessageBubble(author, content, timeStamp);
+            MessageBubble messageBubble = new MessageBubble(author, content, timeStamp,logUser);
             convoPanel.add(messageBubble);
             height = messageBubble.getPreferredSize().height;
             convoPanel.add(Box.createVerticalStrut(10));
@@ -466,6 +470,14 @@ public class Chat {
         // On réactualise la page pour chaque message envoyé
         convoPanel.revalidate();
         convoPanel.repaint();
+
+        // On défile vers le bas pour afficher le dernier message
+        JScrollBar vertical = scrollPane.getVerticalScrollBar();
+        Rectangle rect = vertical.getVisibleRect();
+        rect.y = vertical.getMaximum() - rect.height;
+        vertical.setValue(vertical.getMaximum());
+        scrollPane.scrollRectToVisible(rect);
+
     }
 
     /**
@@ -505,5 +517,22 @@ public class Chat {
             }
         }
         return renderer;
+    }
+
+
+    /**
+     * Méthode pour update les utilisateurs dans le pannel
+     * @param userList Jlist des users pour la view
+     * @param listUsers liste des utilisateurs connectés
+     */
+    public void updateUserList(List<User> listUsers, JList<String> userList) {
+        String[] pseudos = new String[listUsers.size()];
+        // Remplir le tableau de pseudos avec les pseudos des utilisateurs
+        for (int i = 0; i < listUsers.size(); i++) {
+            pseudos[i] = listUsers.get(i).getPseudo();
+        }
+        // Mettre à jour la JList avec la nouvelle liste d'utilisateurs
+        userList.setListData(pseudos);
+
     }
 }

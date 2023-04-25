@@ -1,10 +1,7 @@
 package client.view;
 
 
-import client.model.Conversation;
-import client.model.Message;
-import client.model.Status;
-import client.model.User;
+import client.model.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -71,9 +68,10 @@ public class Client {
      */
     public void send(String message) {
         // Si message de déconnexion
-        if (message.equals("/disconnect") || !threadListenServer.running) {
+        if (message.equals("/disconnected") || !threadListenServer.running) {
             // Arrêt du thread d'écoute des messages du serveur et fermeture de la connexion avec le serveur
             try {
+                System.out.println("Closing client");
                 threadListenServer.running = false;
                 close();
             } catch (IOException e) {
@@ -127,6 +125,17 @@ public class Client {
 
                     }
                 }
+
+                case "log_out"->{
+                    String pseudo = parts[2];
+                    for (User user : userList){
+                        if (user.getPseudo().equals(pseudo)){
+                            user.setStatus("Offline");
+                        }
+                    }
+
+                }
+
                 case "signUp" -> {
                     String pseudo = parts[2];
                     String firstName = parts[3];
@@ -171,6 +180,24 @@ public class Client {
                         }
                     }
                 }
+
+                case "upgrade" -> {
+                    String pseudo = parts[2];
+                    String grade = parts[3];
+                    for (User user : userList) {
+                        if (user.getPseudo().equals(pseudo)) {
+                            if (grade.equals("Administrator")){
+                                user.setGrade(Grades.Administrator);
+                                this.user.setGrade(Grades.Administrator);
+                            }
+                            else {
+                                user.setGrade(Grades.Moderator);
+                                this.user.setGrade(Grades.Moderator);
+                            }
+
+                        }
+                    }
+                }
             }
         }
         else if (type.equals("MESSAGE")) {
@@ -178,9 +205,9 @@ public class Client {
                 String[] messages = parts[2].split("/"); // Séparer tous les messages
                 for (String message : messages) {
                     String[] messageParts = message.split("_");
-                    String author = messageParts[0];
+                    String content = messageParts[0];
                     String timestamp = messageParts[1];
-                    String content = messageParts[2];
+                    String author = messageParts[2];
                     Message newMessage = new Message(author, timestamp, content);
                     conversation.getConversation().add(newMessage);
                 }
