@@ -1,57 +1,57 @@
 package client.view;
 
-import client.controller.MessageController;
-import client.controller.UserController;
+import server.clientConnectionManagementModule.ThreadListenClient;
 import client.model.Conversation;
 import client.model.User;
-import server.dataAccesModule.DaoMessage;
-import server.dataAccesModule.DaoUser;
 
-import java.io.BufferedReader;
+import javax.swing.*;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.sql.SQLException;
+import java.util.ArrayList;
 
+/**
+ * Classe qui permet d'afficher toute la view
+ */
 public class DisplayStepHandler {
-
-    //constructeur privé pour ne pas instancier cette class
-    private DisplayStepHandler(){}
-    private static String serverHost = "localhost"; // adresse IP ou nom d'hôte du serveur
-    private static int serverPort=  4000; // port sur lequel le serveur écoute les connexions entrantes
-    private static Socket socket; // objet Socket pour communiquer avec le serveur
-
-    private static PrintWriter writer; // objet PrintWriter pour écrire des données à envoyer au serveur
-    public static String clientMessage;
-    private static BufferedReader reader; // flux d'entrée (réception des messages du serveur)
+    /**
+     * constructeur privé pour ne pas instancier cette classe
+     */
+    private DisplayStepHandler() {
+    }
 
     private static ThreadListenClient threadListenClient;
 
     public static int level = 0;
     public static boolean isDisplay = false;
-    private static User user= new User();
-    private static MessageController messageController;
 
-    public static void setDisplay(int stage){
+    /**
+     * Change le niveau de l'affichage et indique qu'aucune fenêtre n'est actuellement affichée.
+     *
+     * @param stage le nouveau niveau d'affichage
+     */
+    public static void setDisplay(int stage) {
         level = stage;
         isDisplay = false;
     }
 
-
-    public static void run(UserController userController, DaoUser daoUser, DaoMessage daoMessage) throws SQLException {
-
-        Conversation conversation = new Conversation("Salon");
-        //retrouver l'historique des messages
-        conversation.setConversation(daoMessage.findAll()); // doit etre salon
+    /**
+     * Méthode utilisée pour déterminer quel affichage entre la fenêtre
+     * de menu, la fenêtre de connexion, la fenêtre d'inscription, la fenêtre de discussion,
+     * ou une fenêtre d'erreur en cas de bannissement.
+     *
+     * @param client       l'objet client utilisé pour envoyer et recevoir des messages du serveur
+     * @param conversation la conversation actuelle du client
+     * @param userList     la liste des utilisateurs connectés au serveur
+     * @throws IOException si une erreur survient lors de la communication avec le serveur
+     */
+    public static void view(Client client, Conversation conversation, ArrayList<User> userList) throws IOException {
 
         Login login = new Login();
         SignUp signUp = new SignUp();
-        Salon salon = new Salon();
+        Chat chat = new Chat();
         Menu menu = new Menu();
-        boolean close =true;
+        boolean run = true;
 
-        while(true){
+        while (run) {
             switch (level) {
                 case 0 -> { //affichage de la fenetre de menu (démarrage)
                     if (!isDisplay) {
@@ -63,64 +63,36 @@ public class DisplayStepHandler {
                 case 1 -> { //affichage de la fenetre de login
                     if (!isDisplay) {
                         isDisplay = true;
-                        login.display();
+                        login.display(client);
                     }
                     System.out.print("");
                 }
                 case 2 -> { //affichage de la fenetre de sign up
                     if (!isDisplay) {
                         isDisplay = true;
-                        signUp.display();
+                        signUp.display(client, userList);
                     }
                     System.out.print("");
                 }
                 case 3 -> { //affichage du salon
                     if (!isDisplay) {
                         isDisplay = true;
-                        System.out.println("--- OUVERTURE DU SALON ---");
-                        salon.display(user, daoUser, userController, conversation);
+                        chat.display(client, conversation, userList);
                     }
                     System.out.print("");
                 }
 
-                // Appeler la fonction userController.logIn() pour connecter l'utilisateur
-                case 4 -> { //verifier les données du login dans la BDD
-                    if (userController.loginUser(login.getPseudo(), login.getPassword())) {
-                        login.setHasAccess(1);
-                        user = userController.getUser();
-                        try {
-                            // Créer une socket pour communiquer avec le serveur
-                            socket = new Socket(serverHost, serverPort);
-                            // Initialiser les flux de sortie et d'entrée pour la communication avec le serveur
-                            writer = new PrintWriter(socket.getOutputStream(), true);
-                            writer.println(user.getPseudo());
-                            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                case 4 -> { //affichage de la fenêtre d'erreur en cas de bannissement
+                    JFrame banFrame = new JFrame();
+                    JOptionPane.showMessageDialog(banFrame, "Vous avez été banni !");
+                    Window.closeWindow(banFrame);
+                    run = false;
 
-                            System.out.println("Vous êtes connecté avec le nom d'utilisateur " + user.getPseudo());
-
-                            // Démarrer un thread pour écouter les messages entrants du serveur
-                            threadListenClient = new ThreadListenClient(reader, null, user.getPseudo());
-                            threadListenClient.start();
-                        } catch (IOException e) {
-
-                            System.err.println("IOException occurred.");
-                            return;
-                        }
-
-                        messageController = new MessageController(user,daoMessage,conversation);
-                        level = 1;
-                    } else {
-                        login.setHasAccess(0);
-                        level = 1;
-                    }
                 }
-                case 5 -> { //inscrire un nouvel user dans la BDD
-                    userController.registerUser(signUp.getFirstName(), signUp.getLastName(), signUp.getPassword(), signUp.getPseudo());
+                case 5 -> { //inscription d'un nouvel utilisateur dans la BDD
                     level = 0;
                 }
-                case 6 -> { //ecrire un nouveau message
-                    messageController.send(clientMessage);
-                    writeMessage(clientMessage);
+                case 6 -> { //écriture d'un nouveau message dans la conversation
                     level = 3;
 
                 }
@@ -128,36 +100,8 @@ public class DisplayStepHandler {
                 }
                 // Si la valeur de "level" ne correspond à aucun des cas ci-dessus, faire quelque chose ici
             }
+
         }
-
-
-
     }
-
-    private static void writeMessage(String message) {
-        System.out.println("Begin chat with " + serverHost + " on port " + serverPort);
-
-        // Envoie le message au serveur
-        writer.println(user.getPseudo() + ": " + message);
-
-        // Vérifie si l'utilisateur souhaite se déconnecter
-        if (message.equals("/disconnect") || !threadListenClient.running) {
-            System.out.println("Exiting...");
-            try {
-                threadListenClient.running = false;
-                socket.close();
-            } catch (IOException e) {
-                System.err.println("Error closing socket.");
-            }
-
-            System.out.println("Chat terminated");
-        } else {
-            System.out.println(user.getPseudo() + ": " + message);
-        }
-
-        // Arrête le thread d'écoute des messages du serveur et ferme la connexion avec le serveur
-
-    }
-
 }
 

@@ -3,26 +3,47 @@ package client.view;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Cette classe représente la fenêtre de connexion pour l'utilisateur.
+ */
 public class Login {
 
-    private JFrame loginFrame;
-    private String password = null, pseudo = null;
-    private int hasAccess = 2;
+    private JFrame loginFrame; // La fenêtre de connexion
+    private String password = null, pseudo = null; // Le mot de passe et le pseudo entrés par l'utilisateur
+    private int hasAccess = 2; // Indicateur de l'accès de l'utilisateur
 
-
+    /**
+     * Cette méthode permet de modifier l'accès de l'utilisateur.
+     *
+     * @param hasAccess Indicateur d'accès pour l'utilisateur
+     */
     public void setHasAccess(int hasAccess) {
         this.hasAccess = hasAccess;
     }
 
+    /**
+     * Cette méthode retourne le mot de passe entré par l'utilisateur.
+     *
+     * @return Le mot de passe entré par l'utilisateur
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Cette méthode retourne le pseudo entré par l'utilisateur.
+     *
+     * @return Le pseudo entré par l'utilisateur
+     */
     public String getPseudo() {
         return pseudo;
     }
 
-    public void display(){
+    /**
+     * Cette méthode permet d'afficher la fenêtre de connexion pour l'utilisateur.
+     *
+     * @param client L'instance du client
+     */    public void display(Client client){
 
         loginFrame = new JFrame("Log In");
         loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -80,12 +101,8 @@ public class Login {
         loginFrame.add(mainPanel);
         loginFrame.pack();
         loginFrame.setLocationRelativeTo(null); // center the frame
-        if (hasAccess==1){
-            JOptionPane.showMessageDialog(loginFrame, "LogIn complet", "LogIn Complet", JOptionPane.INFORMATION_MESSAGE);
-            DisplayStepHandler.setDisplay(3);
-            Window.closeWindow(loginFrame);
-        }
-        else if(hasAccess==0){
+
+        if(hasAccess==0){
             JOptionPane.showMessageDialog(loginFrame, "LogIn incorrect\nMerci de réessayer ou de Sign Up", "LogIn Complet", JOptionPane.ERROR_MESSAGE);
             setHasAccess(2);
             DisplayStepHandler.setDisplay(0);
@@ -105,11 +122,36 @@ public class Login {
             // On vérifie que les cases sont remplies
             if (password.equals("") || pseudoField.getText().equals("")) {
                 JOptionPane.showMessageDialog(loginFrame, "Veuillez remplir toutes les cases", "Remplir", JOptionPane.WARNING_MESSAGE);
-            } else {
-                DisplayStepHandler.setDisplay(4);
+            }
+            else {
+                // Démarrez un thread pour envoyer la demande au serveur
+                new Thread(() -> {
+                    String message = "USER_REQUEST::login::"+pseudo+"::"+password;
+                    client.send(message);
+                }).start();
+
+                // Attendre la réponse du serveur dans une boucle
+                while (client.getUser() == null) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            if (!client.getUser().isBan()){
+                JOptionPane.showMessageDialog(loginFrame, "LogIn complet", "LogIn Complet", JOptionPane.INFORMATION_MESSAGE);
+                DisplayStepHandler.setDisplay(3);
+                Window.closeWindow(loginFrame);
+            }
+            else{
+                JOptionPane.showMessageDialog(loginFrame, "Vous êtes banni !", "BAN", JOptionPane.WARNING_MESSAGE);
+                DisplayStepHandler.setDisplay(0);
                 Window.closeWindow(loginFrame);
             }
         });
+
+
 
         // Action quand on clique le bouton retour
         retourButton.addActionListener(event -> {

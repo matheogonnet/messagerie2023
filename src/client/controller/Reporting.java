@@ -23,13 +23,25 @@ import server.dataAccesModule.DaoUser;
 import java.sql.SQLException;
 
 
+
+/**
+ * Classe de reporting pour générer des graphiques.
+ */
 public class Reporting {
     private List<User> userList;
 
+    /**
+     * Constructeur de Reporting.
+     *
+     * @param userList liste des utilisateurs
+     */
     public Reporting(List<User> userList) {
         this.userList = userList;
     }
 
+    /**
+     * Génère un graphique circulaire montrant la répartition des grades des utilisateurs.
+     */
     public void GraphGrades() {
         DefaultPieDataset dataset = new DefaultPieDataset();
 
@@ -54,6 +66,9 @@ public class Reporting {
         frame.setVisible(true);
     }
 
+    /**
+     * Génère un graphique circulaire montrant la répartition des statuts des utilisateurs.
+     */
     public void GraphStatus() {
         DefaultPieDataset dataset = new DefaultPieDataset();
 
@@ -77,7 +92,12 @@ public class Reporting {
         frame.pack();
         frame.setVisible(true);
     }
-
+    /**
+     * Génère un graphique en bâtons montrant le nombre de messages par utilisateur.
+     *
+     * @param daoMessage instance de DaoMessage pour accéder à la base de données
+     * @throws SQLException si une erreur de base de données se produit
+     */
     public void GraphTopUser(DaoMessage daoMessage) throws SQLException {
         Map<String, Integer> messageCounts = new HashMap<>();
         for (User user : userList) {
@@ -110,6 +130,11 @@ public class Reporting {
         frame.setVisible(true);
     }
 
+    /**
+     * Génère un graphique en bâtons montrant le nombre de messages envoyés par jour.
+     *
+     * @param daoMessage instance de DaoMessage pour accéder à la base de données
+     */
     public void GraphMessageTime(DaoMessage daoMessage) {
         try {
             Map<LocalDate, Integer> messageCountsByDate = daoMessage.getMessageTime();
@@ -134,6 +159,7 @@ public class Reporting {
             e.printStackTrace();
         }
     }
+
 
     // INUTILISABLE POUR L INSTANT A CAUSE DE LAST_CONNECTION QUI EST NULL
   /*  public void GraphLoginTime(DaoUser daoUser) throws SQLException {

@@ -7,19 +7,34 @@ import server.dataAccesModule.DaoMessage;
 
 import java.sql.SQLException;
 
-
+/**
+ * Contrôleur de gestion des messages.
+ */
 public class MessageController {
 
     private User user;
     private DaoMessage daoMessage;
     private Conversation conversation;
 
-    public MessageController(User user, DaoMessage daoMessage, Conversation conversation){
+    /**
+     * Constructeur du contrôleur de gestion des messages.
+     *
+     * @param user         l'utilisateur actuel
+     * @param daoMessage   accès aux données des messages
+     * @param conversation la conversation en cours
+     */
+    public MessageController(User user, DaoMessage daoMessage, Conversation conversation) {
         this.user = user;
         this.daoMessage = daoMessage;
         this.conversation = conversation;
     }
 
+    /**
+     * Envoie un message.
+     *
+     * @param content contenu du message
+     * @throws SQLException en cas d'erreur SQL
+     */
     public void send(String content) throws SQLException {
         Message message = user.write_message(content);
         conversation.addMessage(message);
@@ -27,63 +42,55 @@ public class MessageController {
         daoMessage.update(message);
     }
 
+    /**
+     * Modifie un message.
+     *
+     * @param messageId  identifiant du message à modifier
+     * @param newContent nouveau contenu du message
+     * @throws SQLException en cas d'erreur SQL
+     */
     public void editMessage(int messageId, String newContent) throws SQLException {
-        // Récupération du message à modifier à partir de son identifiant
-        Message messageToEdit = conversation.getMessageById(messageId); //return un type : null ou Message
+        Message messageToEdit = conversation.getMessageById(messageId);
 
         if (messageToEdit == null) {
-            //faire l'affichage graphique
             throw new IllegalArgumentException("Le message spécifié n'existe pas dans la conversation");
         }
 
-        // Vérification que l'utilisateur courant est l'auteur du message
         if (!messageToEdit.getAuthor().equals(user.getPseudo())) {
-            //faire l'affichage graphique
             throw new IllegalArgumentException("Vous n'êtes pas autorisé à modifier ce message");
         }
 
-        // Suppression de l'ancien message
         int index = conversation.getConversation().indexOf(messageToEdit);
         conversation.getConversation().remove(messageToEdit);
         daoMessage.delete(messageToEdit);
 
-        // Modification du contenu du message
         messageToEdit.setContent(newContent);
-        conversation.getConversation().add(index,messageToEdit);
+        conversation.getConversation().add(index, messageToEdit);
 
-        // Enregistrement du message modifié en base de données
         daoMessage.update(messageToEdit);
     }
 
+    /**
+     * Supprime un message.
+     *
+     * @param messageId identifiant du message à supprimer
+     * @throws SQLException en cas d'erreur SQL
+     */
     public void deleteMessage(int messageId) throws SQLException {
-        // Récupération du message à modifier à partir de son identifiant
-        Message messageToDelete = conversation.getMessageById(messageId); //return un type : null ou Message
+        Message messageToDelete = conversation.getMessageById(messageId);
 
         if (messageToDelete == null) {
-            //faire l'affichage graphique
             throw new IllegalArgumentException("Le message spécifié n'existe pas dans la conversation");
         }
 
-        // Vérification que l'utilisateur courant est l'auteur du message
         if (!messageToDelete.getAuthor().equals(user.getPseudo())) {
-            //faire l'affichage graphique
             throw new IllegalArgumentException("Vous n'êtes pas autorisé à supprimer ce message");
         }
 
-        // suppression  du message
         int index = conversation.getConversation().indexOf(messageToDelete);
         conversation.getConversation().remove(messageToDelete);
-        daoMessage.delete(messageToDelete); //suppression de l'ancien
+        daoMessage.delete(messageToDelete);
 
-
-        // Enregistrement du message modifié en base de données
         daoMessage.update(messageToDelete);
     }
-
-
-
-
 }
-
-
-

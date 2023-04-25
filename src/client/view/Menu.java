@@ -1,14 +1,12 @@
 package client.view;
-import client.model.Status;
-import client.model.User;
-import client.controller.UserController;
-import server.dataAccesModule.DaoUser;
 
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.ImageIcon;
 
-
+/**
+ * Classe représentant la fenêtre du menu.
+ */
 public class Menu{
 
     // Attributs
@@ -17,7 +15,9 @@ public class Menu{
     final int WIDTH = 800;
     final int HEIGHT = 500;
 
-
+    /**
+     * Affiche la fenêtre du menu.
+     */
     public void display(){
         // Définitinon de la frame
         menuFrame.setSize(WIDTH, HEIGHT);

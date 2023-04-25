@@ -1,5 +1,6 @@
-package client.controller;
+package server.clientConnectionManagementModule;
 
+import client.controller.Reporting;
 import client.model.Grades;
 import client.model.Status;
 import client.model.User;
@@ -9,11 +10,20 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Scanner;
 
+/**
+ * Cette classe sert à contrôler les actions de l'utilisateur et les données d'utilisateur
+ */
 public class UserController {
 
     private DaoUser userDao;
 
     private DaoMessage daomessage;
+
+    /**
+
+     Getter de l'utilisateur actuellement connecté
+     @return l'utilisateur actuellement connecté
+     */
 
     public User getUser() {
         return user;
@@ -21,6 +31,10 @@ public class UserController {
 
     private User user;
 
+    /**
+     * Constructeur de la classe UserController
+     * @param userDao Objet DaoUser pour interagir avec la base de données des utilisateurs
+     */
     public UserController(DaoUser userDao) {
         //this.user = user;
         this.userDao = userDao;
@@ -29,6 +43,14 @@ public class UserController {
 
 
     ///REGISTER////
+    /**
+     * Enregistre un nouvel utilisateur dans la base de données
+     * @param firstName le prénom de l'utilisateur à enregistrer
+     * @param lastName le nom de famille de l'utilisateur à enregistrer
+     * @param password le mot de passe de l'utilisateur à enregistrer
+     * @param pseudo le pseudo de l'utilisateur à enregistrer
+     * @throws SQLException si une erreur SQL se produit lors de l'enregistrement de l'utilisateur
+     */
     public void registerUser(String firstName, String lastName, String password, String pseudo) throws SQLException {
         //créer un user classic
         this.user = new User(lastName,firstName,pseudo, password);
@@ -37,10 +59,17 @@ public class UserController {
     }
 
     ///LOGIN////
+
+    /**
+     * Connecte un utilisateur à l'application en vérifiant ses informations de connexion
+     * @param pseudo le pseudo de l'utilisateur à connecter
+     * @param password le mot de passe de l'utilisateur à connecter
+     * @return true si la connexion est réussie, false sinon
+     * @throws SQLException si une erreur SQL se produit lors de la vérification des informations de connexion
+     */
     public boolean loginUser(String pseudo, String password) throws SQLException {
         assert password != null;
         password = User.hashPassword(password);
-
         User userFind = userDao.findByPseudo(pseudo);
 
 
@@ -58,6 +87,11 @@ public class UserController {
     }
 
     ///BAN////
+    /**
+     * Bannit un utilisateur en modifiant son statut dans la base de données
+     * @param userToBan l'utilisateur à bannir
+     * @throws SQLException si une erreur SQL se produit lors de la modification du statut de l'utilisateur
+     */
     public void ban_user(User userToBan) throws SQLException {
 
         // Vérifier que l'utilisateur cible n'est pas déjà banni
@@ -87,6 +121,12 @@ public class UserController {
     }
 
     ///UPGRADE////
+
+    /**
+     * Met à jour le statut d'un utilisateur en modifiant son grade dans la base de données
+     * @param userToUpgrade l'utilisateur à mettre à jour
+     * @throws SQLException si une erreur SQL se produit lors de la modification du grade de l'utilisateur
+     */
     public void upgrade_user(User userToUpgrade) throws SQLException {
 
         if (userToUpgrade.isBan()) {
@@ -119,20 +159,11 @@ public class UserController {
 
     }
 
-    public void setStatus(String status) throws SQLException {
-        if (status.equals("Online")){
-            user.setStatus(Status.Online);
-        }
-        else if(status.equals("Offline")){
-            user.setStatus(Status.Offline);
-        }
-        else {
-            user.setStatus(Status.Away);
-        }
-        userDao.update(user);
-
-    }
-
+    /**
+     * Signale un utilisateur pour un comportement inapproprié
+     * @param reporting l'objet Reporting qui contient les informations sur l'utilisateur signalé et le signaleur
+     * @throws SQLException si une erreur SQL se produit lors de l'enregistrement du signalement
+     */
     public void reportingUser(Reporting reporting) throws SQLException{
         if (user.getGrade() == Grades.Administrator) {
             reporting.GraphGrades();

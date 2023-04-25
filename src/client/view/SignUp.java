@@ -1,9 +1,12 @@
 package client.view;
 
+import client.model.User;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 
 public class SignUp {
@@ -16,23 +19,48 @@ public class SignUp {
     private String lastName;
     private String password;
 
+    /**
+     * Obtient le pseudo de l'utilisateur.
+     *
+     * @return le pseudo de l'utilisateur
+     */
     public String getPseudo() {
         return pseudo;
     }
 
+    /**
+     * Obtient le prénom de l'utilisateur.
+     *
+     * @return le prénom de l'utilisateur
+     */
     public String getFirstName() {
         return firstName;
     }
 
+    /**
+     * Obtient le nom de famille de l'utilisateur.
+     *
+     * @return le nom de famille de l'utilisateur
+     */
     public String getLastName() {
         return lastName;
     }
 
+    /**
+     * Obtient le mot de passe de l'utilisateur.
+     *
+     * @return le mot de passe de l'utilisateur
+     */
     public String getPassword() {
         return password;
     }
 
-    public void display() {
+    /**
+     * Méthode pour afficher la fenêtre de Sign Up
+     * @param client le client qui utilise l'application
+     * @param userList la liste des utilisateurs déjà inscrits
+     */
+    public void display(Client client, ArrayList<User> userList) {
 
         signUpFrame.setSize(WIDTH, HEIGHT);
         signUpFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -114,6 +142,11 @@ public class SignUp {
             } else if(!password.equals(confirmedPassword)){
                 JOptionPane.showMessageDialog(signUpFrame, "Les mots de passe ne sont pas identiques.", "Sign Up incomplet", JOptionPane.WARNING_MESSAGE);
             } else{
+                User newUser = new User(lastName,firstName,pseudo);
+                userList.add(newUser);
+                client.send("USER_REQUEST::signUp::"+pseudo+"::"+firstName+"::"+lastName+"::"+password);
+
+
                 JOptionPane.showMessageDialog(signUpFrame, "Le Sign Up est complet.", "Sign Up complet", JOptionPane.INFORMATION_MESSAGE);
                 DisplayStepHandler.setDisplay(5);
                 Window.closeWindow(signUpFrame);
