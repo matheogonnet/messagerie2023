@@ -2,7 +2,6 @@ package server;
 
 // Importation des classes nécessaires pour le fonctionnement du serveur
 import server.clientConnectionManagementModule.Server;
-import server.clientConnectionManagementModule.UserController;
 import server.dataAccesModule.DaoMessage;
 import server.dataAccesModule.DaoUser;
 
@@ -32,11 +31,9 @@ public class MainServer {
         daoMessage.openConnection();
         daoUser.openConnection();
 
-        // Création d'une instance de UserController pour gérer les utilisateurs
-        UserController userController = new UserController(daoUser);
 
         // Création et démarrage d'une instance de Server avec un port d'écoute, userController, daoMessage et daoUser
-        new Server(4000, userController, daoMessage, daoUser);
+        new Server(4000, daoMessage, daoUser);
 
         // Fermeture des connexions à la base de données pour daoUser et daoMessage
         daoUser.closeConnection();

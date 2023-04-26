@@ -33,11 +33,10 @@ public class Server extends Thread {
 
     /**
      * Constructeur de la classe Server.
-     * @param userController Le contrôleur d'utilisateur pour gérer les utilisateurs.
      * @param daoMessage Le DAO pour gérer les messages stockés dans la base de données.
      * @param daoUser Le DAO pour gérer les utilisateurs stockés dans la base de données.
      */
-    public Server(int port, UserController userController, DaoMessage daoMessage, DaoUser daoUser) {
+    public Server(int port, DaoMessage daoMessage, DaoUser daoUser) {
         this.daoMessage = daoMessage;
         this.daoUser = daoUser;
 
