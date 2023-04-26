@@ -1,5 +1,6 @@
 package client.view;
 
+import client.controller.Client;
 import client.model.*;
 
 import javax.swing.*;
@@ -389,9 +390,9 @@ public class Chat {
 
             setOpaque(true);
             if (author.equals(user.getPseudo())) {
-                setBackground(new Color(155, 155, 155, 255));
-            } else {
                 setBackground(new Color(67, 192, 0, 255));
+            } else {
+                setBackground(new Color(155, 155, 155, 255));
             }
 
             setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 10));
@@ -449,13 +450,18 @@ public class Chat {
         // On prend le dernier message écrit
         for (int i = 0; i < numMessages; i++) {
 
+            JPanel messagePanel = new JPanel();
+            messagePanel.setLayout(new BorderLayout());
+
             // On récupère le message que l'on veut afficher de la conversation
             Message message = conversation.get(i);
             String content = message.getContent();
             String author = message.getAuthor();
             String timeStamp = message.getTimeStamp();
             MessageBubble messageBubble = new MessageBubble(author, content, timeStamp,logUser);
-            convoPanel.add(messageBubble);
+            messagePanel.add(messageBubble, author.equals(logUser.getPseudo()) ? BorderLayout.EAST : BorderLayout.WEST);
+            messagePanel.setBackground(Color.WHITE);
+            convoPanel.add(messagePanel);
             height = messageBubble.getPreferredSize().height;
             convoPanel.add(Box.createVerticalStrut(10));
         }
@@ -464,7 +470,7 @@ public class Chat {
 
         // Trouvé après essais successifs, défini la taille de l'ecran en fonction du nombre de messages envoyés
         int convoPanelHeight = numComponents * (height + 10) + 20;
-        convoPanel.setPreferredSize(new Dimension(convoPanel.getWidth(), convoPanelHeight));
+        convoPanel.setPreferredSize(new Dimension(convoPanel.getWidth()-100, convoPanelHeight));
 
         // On réactualise la page pour chaque message envoyé
         convoPanel.revalidate();

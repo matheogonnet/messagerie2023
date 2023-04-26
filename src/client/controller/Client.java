@@ -1,14 +1,14 @@
-package client.view;
+package client.controller;
 
 
 import client.model.*;
+import client.view.DisplayStepHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**

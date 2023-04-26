@@ -1,5 +1,6 @@
 package client.view;
 
+import client.controller.Client;
 import client.model.User;
 
 import javax.swing.*;

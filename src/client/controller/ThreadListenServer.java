@@ -1,14 +1,10 @@
-package client.view;
+package client.controller;
 
-import client.model.Conversation;
-import client.model.User;
-import server.clientConnectionManagementModule.Server;
-import server.clientConnectionManagementModule.ServerClient;
+import client.controller.Client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.SocketException;
-import java.util.ArrayList;
 
 /**
  * Classe ThreadListenServer qui hérite de la classe Thread.

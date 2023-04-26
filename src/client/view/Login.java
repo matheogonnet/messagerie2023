@@ -1,5 +1,7 @@
 package client.view;
 
+import client.controller.Client;
+
 import javax.swing.*;
 import java.awt.*;
 

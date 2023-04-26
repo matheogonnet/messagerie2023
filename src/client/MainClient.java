@@ -1,13 +1,6 @@
 package client;
 
-import client.view.Client;
-import server.clientConnectionManagementModule.UserController;
-import client.view.DisplayStepHandler;
-import server.dataAccesModule.DaoMessage;
-import server.dataAccesModule.DaoUser;
-
-import java.io.IOException;
-import java.sql.SQLException;
+import client.controller.Client;
 
 /**
  * Classe principale du client.

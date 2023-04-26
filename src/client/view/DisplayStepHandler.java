@@ -1,5 +1,6 @@
 package client.view;
 
+import client.controller.Client;
 import server.clientConnectionManagementModule.ThreadListenClient;
 import client.model.Conversation;
 import client.model.User;
