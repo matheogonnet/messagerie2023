@@ -45,7 +45,7 @@ public class Chat {
 
 
         //Fenetre salon
-        chatFrame = new JFrame("Chat :"+client.getUser().getPseudo());
+        chatFrame = new JFrame("Chat :  "+client.getUser().getPseudo());
         chatFrame.setSize(1200, 800);
         chatFrame.setLocationRelativeTo(null);
         chatFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

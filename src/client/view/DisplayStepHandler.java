@@ -87,6 +87,7 @@ public class DisplayStepHandler {
                     JFrame banFrame = new JFrame();
                     JOptionPane.showMessageDialog(banFrame, "Vous avez été banni !");
                     Window.closeWindow(banFrame);
+                    client.send("/disconnected");
                     run = false;
 
                 }
@@ -95,7 +96,6 @@ public class DisplayStepHandler {
                 }
                 // Si la valeur de "level" ne correspond à aucun des cas ci-dessus, faire quelque chose ici
             }
-
         }
     }
 }

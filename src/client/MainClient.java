@@ -21,6 +21,6 @@ public class MainClient {
     public static void main(String[] args) {
         System.out.println("--- CLIENT ---");
 
-        new Client("localhost", 4000);
+        new Client("172.20.10.2", 4000);
     }
 }

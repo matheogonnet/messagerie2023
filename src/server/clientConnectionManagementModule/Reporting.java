@@ -1,4 +1,4 @@
-package client.controller;
+package server.clientConnectionManagementModule;
 
 import java.time.LocalDate;
 import java.util.HashMap;
