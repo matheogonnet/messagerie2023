@@ -33,7 +33,6 @@ public class Chat {
 
     /**
      * Affiche la fenêtre de chat.
-     *
      * @param client          Le client qui utilise l'application : il envoit les messages au server et les réceptionne pour actualiser la BDD
      * @param conversation    La conversation en cours.
      * @param listUsers       La liste des utilisateurs connectés.
@@ -45,7 +44,7 @@ public class Chat {
         updateUserList(listUsers,userList);
 
 
-        //fentre salon
+        //Fenetre salon
         chatFrame = new JFrame("Chat :"+client.getUser().getPseudo());
         chatFrame.setSize(1200, 800);
         chatFrame.setLocationRelativeTo(null);

@@ -21,6 +21,7 @@ public class DisplayStepHandler {
     private static ThreadListenClient threadListenClient;
 
     public static int level = 0;
+    public static boolean acces = true;
     public static boolean isDisplay = false;
 
     /**
@@ -89,13 +90,7 @@ public class DisplayStepHandler {
                     run = false;
 
                 }
-                case 5 -> { //inscription d'un nouvel utilisateur dans la BDD
-                    level = 0;
-                }
-                case 6 -> { //écriture d'un nouveau message dans la conversation
-                    level = 3;
 
-                }
                 default -> {
                 }
                 // Si la valeur de "level" ne correspond à aucun des cas ci-dessus, faire quelque chose ici

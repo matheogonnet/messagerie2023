@@ -129,7 +129,6 @@ public class Login {
                     String message = "USER_REQUEST::login::"+pseudo+"::"+password;
                     client.send(message);
                 }).start();
-
                 // Attendre la réponse du serveur dans une boucle
                 while (client.getUser() == null) {
                     try {
@@ -139,7 +138,14 @@ public class Login {
                     }
                 }
             }
-            if (!client.getUser().isBan()){
+
+            if (!DisplayStepHandler.acces) {
+                JOptionPane.showMessageDialog(loginFrame, "Username ou mot de passe incorrect !", "ERROR", JOptionPane.ERROR_MESSAGE);
+                DisplayStepHandler.setDisplay(0);
+                Window.closeWindow(loginFrame);
+
+            }
+            else if (!client.getUser().isBan()&&DisplayStepHandler.acces){
                 JOptionPane.showMessageDialog(loginFrame, "LogIn complet", "LogIn Complet", JOptionPane.INFORMATION_MESSAGE);
                 DisplayStepHandler.setDisplay(3);
                 Window.closeWindow(loginFrame);

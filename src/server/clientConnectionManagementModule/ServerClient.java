@@ -125,7 +125,6 @@ public class ServerClient{
                 }
 
                 case "signUp": {
-
                     String pseudo = parts[2];
                     String firstName = parts[3];
                     String lastName = parts[4];
@@ -213,7 +212,7 @@ public class ServerClient{
             Grades grade = controller.getUser().getGrade();
             Boolean ban = controller.getUser().isBan();
             send("USER::login::ACCES GRANTED::"+pseudo+"::"+firstName+"::"+lastName+"::"+status+"::"+grade+"::"+ban);
-
+            server.sendToAllClients("USER::newLogin::"+pseudo,id);
         }
         else send("USER::login::ACCES DENIED");
     }
@@ -248,7 +247,6 @@ public class ServerClient{
     }
 
     /**
-
      * Met un utilisateur en mode "banni"
      * @param pseudo le pseudo de l'utilisateur à bannir
      * @throws SQLException si une erreur SQL se produit
@@ -257,6 +255,7 @@ public class ServerClient{
     private void ban(String pseudo) throws SQLException, IOException {
         User user = daoUser.findByPseudo(pseudo);
         user.setBan(true);
+        user.setStatus("Offline");
         daoUser.update(user);
         server.sendToAllClients("USER::ban::"+user.getPseudo(),id);
     }
@@ -310,8 +309,8 @@ public class ServerClient{
 
     }
 
-    /**
 
+    /**
      * Récupère la liste de tous les utilisateurs enregistrés dans la base de données et les envoie au client sous forme de message
      * @param daoUser l'objet DaoUser pour accéder à la base de données
      * @throws SQLException si une erreur SQL se produit
@@ -334,7 +333,6 @@ public class ServerClient{
 
 
     /**
-
      * Ajoute un message à la base de données
      * @param author l'auteur du message
      * @param timestamp la date d'envoi du message

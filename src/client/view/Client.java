@@ -115,14 +115,27 @@ public class Client {
                         String status = parts[6];
                         String grade = parts[7];
                         String ban = parts[8];
+                        DisplayStepHandler.acces = true;
                         this.user = create_user(pseudo, lastName, firstName, status, grade, ban);
                         for (User logUser : userList){
-                            if (logUser.getPseudo().equals(user.getPseudo())){
-                                logUser.setStatus(user.getStatus());
+                            if (logUser.getPseudo().equals(pseudo)){
+                                logUser.setStatus("Online");
                             }
                         }
-                    } else if (acces.equals("ACCES DENIED")) {
+                    }
+                    else if (acces.equals("ACCES DENIED")) {
+                        DisplayStepHandler.acces = false;
+                        this.user = new User();
 
+                    }
+                }
+
+                case "newLogin"->{
+                    String pseudo = parts[2];
+                    for (User user : userList){
+                        if (user.getPseudo().equals(pseudo)){
+                            user.setStatus("Online");
+                        }
                     }
                 }
 
