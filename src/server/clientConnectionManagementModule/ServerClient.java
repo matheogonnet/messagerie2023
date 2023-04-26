@@ -28,7 +28,6 @@ public class ServerClient{
     public BufferedReader reader;
     public PrintWriter writer;
     public ThreadListenClient threadListenClient; // Thread pour écouter les messages du client
-    private UserController controller;
     private DaoMessage daoMessage;
     private DaoUser daoUser;
     private int id;
@@ -44,7 +43,6 @@ public class ServerClient{
      * Constructeur de la classe ServerClient
      * @param clientSocket Socket associé au client
      * @param server Référence vers le serveur
-     * @param userController Contrôleur des utilisateurs
      * @param messageDao DAO des messages
      * @param userDao DAO des utilisateurs
      * @param id ID du client
@@ -53,12 +51,11 @@ public class ServerClient{
 
      */
 
-    public ServerClient(Socket clientSocket, Server server, UserController userController, DaoMessage messageDao, DaoUser userDao, int id) {
+    public ServerClient(Socket clientSocket, Server server, DaoMessage messageDao, DaoUser userDao, int id) {
         this.daoMessage = messageDao;
         this.daoUser = userDao;
         this.id = id;
         this.server = server;
-        this.controller = userController;
         this.clientSocket = clientSocket;
         try{
             // Initialisation des flux de lecture et d'écriture
@@ -204,16 +201,28 @@ public class ServerClient{
      * @throws IOException si une erreur d'entrée/sortie se produit lors de l'envoi du message au client
      */
     private void login(String password, String pseudo) throws SQLException, IOException {
-        if (controller.loginUser(pseudo,password)){
-            String firstName = controller.getUser().getFirst_name();
-            String lastName = controller.getUser().getLast_name();
-            Status status = Status.Online; //le status est directement est directement mit online à la connexion
-            Grades grade = controller.getUser().getGrade();
-            Boolean ban = controller.getUser().isBan();
+
+        assert password != null;
+        String hashPassword = User.hashPassword(password);
+        User userFind = daoUser.findByPseudo(pseudo);
+
+        if (userFind != null && userFind.getPassword().equals(hashPassword)) {
+            System.out.println("Login successful");
+            userFind.log_in();
+            daoUser.update(userFind);
+            String firstName = userFind.getFirst_name();
+            String lastName = userFind.getLast_name();
+            Status status = Status.Online; //le status est directement mit online à la connexion
+            Grades grade = userFind.getGrade();
+            Boolean ban = userFind.isBan();
             send("USER::login::ACCES GRANTED::"+pseudo+"::"+firstName+"::"+lastName+"::"+status+"::"+grade+"::"+ban);
             server.sendToAllClients("USER::newLogin::"+pseudo,id);
+
+        } else {
+            System.out.println("Login fail : Incorrect username or password");
+             send("USER::login::ACCES DENIED");
+
         }
-        else send("USER::login::ACCES DENIED");
     }
 
     private void  logout(String pseudo) throws SQLException, IOException {
@@ -357,6 +366,8 @@ public class ServerClient{
         Message message = new Message(author,timestamp,content);
         daoMessage.delete(message);
     }
+
+
 
 
     /**

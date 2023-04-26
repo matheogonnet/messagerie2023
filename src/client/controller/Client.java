@@ -201,11 +201,9 @@ public class Client {
                         if (user.getPseudo().equals(pseudo)) {
                             if (grade.equals("Administrator")){
                                 user.setGrade(Grades.Administrator);
-                                this.user.setGrade(Grades.Administrator);
                             }
                             else {
                                 user.setGrade(Grades.Moderator);
-                                this.user.setGrade(Grades.Moderator);
                             }
 
                         }

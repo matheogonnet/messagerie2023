@@ -21,7 +21,6 @@ public class Server extends Thread {
     private ServerSocket serverSocket;
     private String yourMessage;
     private static ArrayList<ServerClient> clients = new ArrayList<>(); //liste de tous les Servers client
-    private  UserController userController;
     private DaoMessage daoMessage;
     private DaoUser daoUser;
     private static int nextClientId = 1;
@@ -41,8 +40,6 @@ public class Server extends Thread {
     public Server(int port, UserController userController, DaoMessage daoMessage, DaoUser daoUser) {
         this.daoMessage = daoMessage;
         this.daoUser = daoUser;
-        this.userController =userController;
-
 
         try { // Écoute les connexions entrantes
 
@@ -88,7 +85,7 @@ public class Server extends Thread {
             System.out.println("Waiting for connection...");
             try {
                 Socket socket = serverSocket.accept(); // Attendre une nouvelle connexion
-                ServerClient serverClient = new ServerClient(socket, this, userController, daoMessage, daoUser, nextClientId++);
+                ServerClient serverClient = new ServerClient(socket, this, daoMessage, daoUser, nextClientId++);
                 clients.add(serverClient); // Ajouter le client à la liste des clients connectés
                 System.out.println("Nouvelle connexion enregistrée : client n°"+serverClient.getId());
             } catch (SocketException e) {

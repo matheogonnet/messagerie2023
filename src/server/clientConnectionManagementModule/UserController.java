@@ -57,22 +57,5 @@ public class UserController {
      * @return true si la connexion est réussie, false sinon
      * @throws SQLException si une erreur SQL se produit lors de la vérification des informations de connexion
      */
-    public boolean loginUser(String pseudo, String password) throws SQLException {
-        assert password != null;
-        password = User.hashPassword(password);
-        User userFind = userDao.findByPseudo(pseudo);
 
-
-        if (userFind != null && userFind.getPassword().equals(password)) {
-            System.out.println("Login successful");
-            //on met à jour son statut : online
-            userFind.log_in();
-            this.user = userFind;
-            userDao.update(user);
-            return true;
-        } else {
-            System.out.println("Incorrect username or password");
-            return false;
-        }
-    }
 }
