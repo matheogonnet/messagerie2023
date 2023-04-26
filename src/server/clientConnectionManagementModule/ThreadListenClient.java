@@ -13,15 +13,25 @@ public class ThreadListenClient extends Thread {
 
     public boolean running = true;
 
+
     private Server server;
     private ServerClient client;
+
+    /**
+     * Initialise un nouveau thread pour écouter les messages envoyés par un client.
+     * @param reader le flux de lecture des messages envoyés par le client
+     * @param server le serveur qui gère la communication avec les clients
+     * @param client le client qui envoie les messages
+     */
     public ThreadListenClient(BufferedReader reader, Server server, ServerClient client) {
         this.reader = reader;
         this.server = server;
         this.client = client;
     }
 
-    //Thread qui lit les messages request provenants du client tant que celui ne se déconnnecte pas
+    /**
+     * Thread qui lit les messages request provenants du client tant que celui ne se déconnnecte pas
+     */
     public void run() {
         while (running){
             try {

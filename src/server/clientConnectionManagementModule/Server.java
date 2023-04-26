@@ -12,6 +12,9 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * Cette classe gère la connexion avec les clients et envoie des messages à tous les clients connectés.
+ */
 
 public class Server extends Thread {
     public boolean isActive = true; // Indique si la connexion est active
@@ -29,6 +32,12 @@ public class Server extends Thread {
         return clients;
     }
 
+    /**
+     * Constructeur de la classe Server.
+     * @param userController Le contrôleur d'utilisateur pour gérer les utilisateurs.
+     * @param daoMessage Le DAO pour gérer les messages stockés dans la base de données.
+     * @param daoUser Le DAO pour gérer les utilisateurs stockés dans la base de données.
+     */
     public Server(int port, UserController userController, DaoMessage daoMessage, DaoUser daoUser) {
         this.daoMessage = daoMessage;
         this.daoUser = daoUser;
@@ -94,7 +103,10 @@ public class Server extends Thread {
         }
     }
 
-    // Envoie un message à tous les clients
+    /**
+     * Envoie un message à tous les clients connectés.
+     * @param message Le message à envoyer.
+     */
     public void sendToAllClients(String message, int id) throws IOException {
         for (ServerClient client :clients){
             if(client.getId()!=id){
