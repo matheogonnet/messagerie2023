@@ -215,8 +215,14 @@ public class ServerClient{
             Status status = Status.Online; //le status est directement mit online à la connexion
             Grades grade = userFind.getGrade();
             Boolean ban = userFind.isBan();
-            send("USER::login::ACCES GRANTED::"+pseudo+"::"+firstName+"::"+lastName+"::"+status+"::"+grade+"::"+ban);
-            server.sendToAllClients("USER::newLogin::"+pseudo,id);
+            if (!ban){
+                send("USER::login::ACCES GRANTED::"+pseudo+"::"+firstName+"::"+lastName+"::"+status+"::"+grade+"::"+ban);
+                server.sendToAllClients("USER::newLogin::"+pseudo,id);
+            }
+            else {
+                System.out.println("Login fail : BAN");
+                send("USER::login::ACCES DENIED");
+            }
 
         } else {
             System.out.println("Login fail : Incorrect username or password");
