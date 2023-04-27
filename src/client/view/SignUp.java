@@ -149,7 +149,7 @@ public class SignUp {
 
 
                 JOptionPane.showMessageDialog(signUpFrame, "Le Sign Up est complet.", "Sign Up complet", JOptionPane.INFORMATION_MESSAGE);
-                DisplayStepHandler.setDisplay(5);
+                DisplayStepHandler.setDisplay(0);
                 Window.closeWindow(signUpFrame);
             }
         });
