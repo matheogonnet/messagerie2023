@@ -1,7 +1,5 @@
 package server.clientConnectionManagementModule;
 
-
-
 import server.dataAccesModule.DaoMessage;
 import server.dataAccesModule.DaoUser;
 
@@ -13,55 +11,50 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
- * Cette classe gère la connexion avec les clients et envoie des messages à tous les clients connectés.
+ * This class manages client connections and sends messages to all connected clients.
  */
-
 public class Server extends Thread {
-    public boolean isActive = true; // Indique si la connexion est active
+    public boolean isActive = true; // Indicates if the connection is active
     private ServerSocket serverSocket;
     private String yourMessage;
-    private static ArrayList<ServerClient> clients = new ArrayList<>(); //liste de tous les Servers client
+    private static ArrayList<ServerClient> clients = new ArrayList<>(); // List of all Server clients
     private DaoMessage daoMessage;
     private DaoUser daoUser;
     private static int nextClientId = 1;
-
-
 
     public ArrayList<ServerClient> getClients() {
         return clients;
     }
 
     /**
-     * Constructeur de la classe Server.
-     * @param daoMessage Le DAO pour gérer les messages stockés dans la base de données.
-     * @param daoUser Le DAO pour gérer les utilisateurs stockés dans la base de données.
+     * Constructor for the Server class.
+     *
+     * @param port       The port on which the server will listen for incoming connections.
+     * @param daoMessage The DAO to manage messages stored in the database.
+     * @param daoUser    The DAO to manage users stored in the database.
      */
     public Server(int port, DaoMessage daoMessage, DaoUser daoUser) {
         this.daoMessage = daoMessage;
         this.daoUser = daoUser;
 
-        try { // Écoute les connexions entrantes
-
+        try {
             System.out.println("Hosting chat server on port " + port);
             serverSocket = new ServerSocket(port);
             start();
-            //démarre un nouveau thread pour gérer la communication avec le nouveau client qui vient de se connecter.
-            // En appelant la méthode "start()" du thread, le code exécuté par le thread est lancé et s'exécute en
-            // arrière-plan, tandis que le reste du programme continue à s'exécuter. Cela permet au serveur d'accepter
-            // de nouveaux clients sans bloquer le thread principal qui écoute les connexions entrantes.
 
             Scanner inputScanner = new Scanner(System.in);
-            while(isActive){
+            while (isActive) {
                 yourMessage = inputScanner.nextLine();
                 System.out.println("Server: " + yourMessage);
 
-                // Si l'utilisateur entre la chaîne "quit()", le serveur se ferme
+                // If the user enters "/disconnected," the server shuts down
                 if (yourMessage.equals("/disconnected")) {
                     isActive = false;
                     break;
                 }
             }
-            // Fermeture de la connexion et des threads
+
+            // Closing the connections and threads
             for (ServerClient client : clients) {
                 client.stopRunning();
             }
@@ -73,47 +66,43 @@ public class Server extends Thread {
             e.printStackTrace();
         }
     }
-    /**
-     * La méthode run() est exécutée lorsqu'on démarre l'instance de la classe en tant que Thread.
-     * Elle gère les connexions entrantes, en créant un nouvel objet ServerClient pour chaque client qui se connecte
-     * et en l'ajoutant à la liste des clients du serveur.
-     */
 
+    /**
+     * The run() method is executed when starting an instance of the class as a Thread.
+     * It handles incoming connections, creating a new ServerClient object for each connecting client
+     * and adding it to the server's list of clients.
+     */
     public void run() {
         while (isActive) {
             System.out.println("Waiting for connection...");
             try {
-                Socket socket = serverSocket.accept(); // Attendre une nouvelle connexion
+                Socket socket = serverSocket.accept(); // Wait for a new connection
                 ServerClient serverClient = new ServerClient(socket, this, daoMessage, daoUser, nextClientId++);
-                clients.add(serverClient); // Ajouter le client à la liste des clients connectés
-                System.out.println("Nouvelle connexion enregistrée : client n°"+serverClient.getId());
+                clients.add(serverClient); // Add the client to the list of connected clients
+                System.out.println("New connection registered: Client #" + serverClient.getId());
             } catch (SocketException e) {
                 if (e.getMessage().equals("Socket closed")) {
-                    isActive = false; // Si la connexion est fermée, arrêter la boucle et terminer l'exécution de la tâche
+                    isActive = false; // If the connection is closed, stop the loop and terminate the thread
                     break;
                 }
             } catch (IOException e) {
-                System.err.println("Erreur lors de la gestion de la connexion entrante");
+                System.err.println("Error handling incoming connection");
                 e.printStackTrace();
             }
         }
     }
 
     /**
-     * Envoie un message à tous les clients connectés.
-     * @param message Le message à envoyer.
+     * Sends a message to all connected clients except the one with the given ID.
+     *
+     * @param message The message to send.
+     * @param id      The ID of the client to exclude from the message broadcast.
      */
     public void sendToAllClients(String message, int id) throws IOException {
-        for (ServerClient client :clients){
-            if(client.getId()!=id){
+        for (ServerClient client : clients) {
+            if (client.getId() != id) {
                 client.send(message);
             }
-
         }
-    }
-
-    // Ajoute un nouveau client à la liste des clients connectés
-    public synchronized void addServerClient(ServerClient serverClient){
-        clients.add(serverClient); // Ajouter le client à la liste des clients connectés
     }
 }

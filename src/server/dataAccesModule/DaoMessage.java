@@ -8,28 +8,27 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.sql.SQLException;
 import java.util.Map;
-
 /**
- * Classe DaoMessage pour gérer les interactions entre les objets Message et la base de données.
+ * DaoMessage class to manage interactions between Message objects and the database.
  */
 public class DaoMessage extends Dao<Message> {
 
     /**
-     * Constructeur du DaoMessage.
+     * Constructor for DaoMessage.
      *
-     * @param url      l'URL de la base de données
-     * @param user     le nom d'utilisateur pour se connecter à la base de données
-     * @param password le mot de passe pour se connecter à la base de données
+     * @param url      the database URL
+     * @param user     the username for connecting to the database
+     * @param password the password for connecting to the database
      */
     public DaoMessage(String url, String user, String password) {
         super(url, user, password);
     }
 
     /**
-     * Ajoute un message à la base de données.
+     * Adds a message to the database.
      *
-     * @param message le message à ajouter
-     * @throws SQLException si une erreur de base de données se produit
+     * @param message the message to add
+     * @throws SQLException if a database error occurs
      */
     @Override
     public void add(Message message) throws SQLException {
@@ -44,10 +43,10 @@ public class DaoMessage extends Dao<Message> {
     }
 
     /**
-     * Met à jour un message existant dans la base de données.
+     * Updates an existing message in the database.
      *
-     * @param message le message à mettre à jour
-     * @throws SQLException si une erreur de base de données se produit
+     * @param message the message to update
+     * @throws SQLException if a database error occurs
      */
     @Override
     public void update(Message message) throws SQLException {
@@ -61,17 +60,17 @@ public class DaoMessage extends Dao<Message> {
     }
 
     /**
-     * Trouve un message par son identifiant (id) dans la base de données.
+     * Finds a message by its identifier (id) in the database.
      *
-     * @param id l'identifiant du message à trouver
-     * @return le message trouvé
-     * @throws SQLException si une erreur de base de données se produit
+     * @param id the identifier of the message to find
+     * @return the found message
+     * @throws SQLException if a database error occurs
      */
     @Override
     public Message find(int id) throws SQLException {
         String query = "SELECT * FROM message WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setInt(1, id); // Ajouter l'id du message à la requête
+            statement.setInt(1, id);
             try (ResultSet result = statement.executeQuery()) {
                 if (result.next()) {
                     String author = result.getString("author");
@@ -84,11 +83,12 @@ public class DaoMessage extends Dao<Message> {
             }
         }
     }
+
     /**
-     * Supprime un message de la base de données.
+     * Deletes a message from the database.
      *
-     * @param message le message à supprimer
-     * @throws SQLException si une erreur de base de données se produit
+     * @param message the message to delete
+     * @throws SQLException if a database error occurs
      */
     @Override
     public void delete(Message message) throws SQLException {
@@ -100,10 +100,10 @@ public class DaoMessage extends Dao<Message> {
     }
 
     /**
-     * Récupère tous les messages de la base de données.
+     * Retrieves all messages from the database.
      *
-     * @return une liste de tous les messages
-     * @throws SQLException si une erreur de base de données se produit
+     * @return a list of all messages
+     * @throws SQLException if a database error occurs
      */
     public ArrayList<Message> findAll() throws SQLException {
         String query = "SELECT * FROM message";
@@ -122,10 +122,10 @@ public class DaoMessage extends Dao<Message> {
     }
 
     /**
-     * Récupère les dates et le nombre de messages pour chaque date dans la base de données.
+     * Retrieves the dates and the number of messages for each date in the database.
      *
-     * @return une Map avec la date comme clé et le nombre de messages comme valeur
-     * @throws SQLException si une erreur de base de données se produit
+     * @return a Map with the date as the key and the number of messages as the value
+     * @throws SQLException if a database error occurs
      */
     public Map<LocalDate, Integer> getMessageTime() throws SQLException {
         String query = "SELECT DATE(timestamp) AS date, COUNT(*) AS message_count FROM message GROUP BY DATE(timestamp) ORDER BY DATE(timestamp)";
@@ -144,11 +144,11 @@ public class DaoMessage extends Dao<Message> {
     }
 
     /**
-     * Récupère le nombre de messages d'un auteur spécifique.
+     * Retrieves the number of messages from a specific author.
      *
-     * @param author l'auteur dont on souhaite compter les messages
-     * @return le nombre de messages de l'auteur
-     * @throws SQLException si une erreur de base de données se produit
+     * @param author the author for whom to count messages
+     * @return the number of messages by the author
+     * @throws SQLException if a database error occurs
      */
     public int getMessageCount(String author) throws SQLException {
         String query = "SELECT COUNT(*) FROM message WHERE author = ?";

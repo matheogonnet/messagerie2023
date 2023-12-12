@@ -5,10 +5,11 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * Classe abstraite Dao générique pour interagir avec la base de données.
+ * Abstract generic Dao class for interacting with the database.
  *
- * @param <T> le type d'objet pour lequel le DAO est créé
+ * @param <T> the type of object for which the DAO is created.
  */
+
 public abstract class Dao<T> {
 
     protected Connection connection;
@@ -17,11 +18,11 @@ public abstract class Dao<T> {
     private final String password;
 
     /**
-     * Constructeur du DAO.
+     * Constructor for the DAO class.
      *
-     * @param url      l'URL de la base de données
-     * @param user     le nom d'utilisateur pour se connecter à la base de données
-     * @param password le mot de passe pour se connecter à la base de données
+     * @param url      The URL of the database.
+     * @param user     The username for connecting to the database.
+     * @param password The password for connecting to the database.
      */
     public Dao(String url, String user, String password) {
         this.url = url;
@@ -30,57 +31,58 @@ public abstract class Dao<T> {
     }
 
     /**
-     * Ouvre la connexion à la base de données.
+     * Opens a connection to the database.
      *
-     * @throws SQLException si une erreur de base de données se produit
+     * @throws SQLException if a database error occurs.
      */
     public void openConnection() throws SQLException {
         connection = DriverManager.getConnection(url, user, password);
-        System.out.println("Connection to the data base : OPEN");
+        System.out.println("Database Connection: OPEN");
     }
 
     /**
-     * Ferme la connexion à la base de données.
+     * Closes the connection to the database.
      *
-     * @throws SQLException si une erreur de base de données se produit
+     * @throws SQLException if a database error occurs.
      */
     public void closeConnection() throws SQLException {
         if (connection != null) {
             connection.close();
         }
-        System.out.println("Connection to the data base : CLOSE");
+        System.out.println("Database Connection: CLOSE");
     }
 
     /**
-     * Trouve un objet T par son identifiant (id) dans la base de données.
+     * Finds an object of type T by its identifier (id) in the database.
      *
-     * @param id l'identifiant de l'objet à trouver
-     * @return l'objet T trouvé
-     * @throws SQLException si une erreur de base de données se produit
+     * @param id the identifier of the object to find.
+     * @return the found object of type T.
+     * @throws SQLException if a database error occurs.
      */
     public abstract T find(int id) throws SQLException;
 
     /**
-     * Ajoute un objet T à la base de données.
+     * Adds an object of type T to the database.
      *
-     * @param obj l'objet à ajouter
-     * @throws SQLException si une erreur de base de données se produit
+     * @param obj the object to add.
+     * @throws SQLException if a database error occurs.
      */
     public abstract void add(T obj) throws SQLException;
 
     /**
-     * Met à jour un objet T existant dans la base de données.
+     * Updates an existing object of type T in the database.
      *
-     * @param obj l'objet à mettre à jour
-     * @throws SQLException si une erreur de base de données se produit
+     * @param obj the object to update.
+     * @throws SQLException if a database error occurs.
      */
     public abstract void update(T obj) throws SQLException;
 
     /**
-     * Supprime un objet T de la base de données.
+     * Deletes an object of type T from the database.
      *
-     * @param obj l'objet à supprimer
-     * @throws SQLException si une erreur de base de données se produit
+     * @param obj the object to delete.
+     * @throws SQLException if a database error occurs.
      */
     public abstract void delete(T obj) throws SQLException;
+
 }
